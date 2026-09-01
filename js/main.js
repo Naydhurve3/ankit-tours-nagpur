@@ -159,7 +159,11 @@ function handleContactForm(e){
   alert("Opening WhatsApp with your details. We will respond quickly!");
 }
 
-function saveBooking(b){
+async function saveBooking(b){
+  // save to Neon via API + local fallback
+  try{
+    await fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+  }catch(e){ console.warn('booking api failed',e); }
   try{
     const key="att_bookings";
     const arr = JSON.parse(localStorage.getItem(key)||"[]");

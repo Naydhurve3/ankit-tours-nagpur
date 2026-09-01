@@ -37,7 +37,22 @@ function mergeData(seed, local){
   return merged;
 }
 
+async function fetchApi(path){
+  try{
+    const res = await fetch(`/api/${path}`);
+    if(!res.ok) throw new Error('api '+path+' failed');
+    return await res.json();
+  }catch(e){ return null; }
+}
+
 async function loadData(){
+  // Try Neon API first, fallback to local/seed for offline & file://
+  const [fleet, packages, gallery, testimonials] = await Promise.all([
+    fetchApi('fleet'), fetchApi('packages'), fetchApi('gallery'), fetchApi('testimonials')
+  ]);
+  if(fleet && packages && gallery && testimonials){
+    return { fleet, packages, gallery, testimonials };
+  }
   const seed = await fetchSeed();
   const local = loadLocal();
   return mergeData(seed, local);
