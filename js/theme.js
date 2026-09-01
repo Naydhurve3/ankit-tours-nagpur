@@ -18,7 +18,7 @@
     // theme-color
     let tc = document.querySelector('meta[name="theme-color"]');
     if(!tc){ tc=document.createElement('meta'); tc.name='theme-color'; document.head.appendChild(tc); }
-    tc.content = effective==='dark' ? '#0B1220' : '#F7F5F0';
+    tc.content = effective==='dark' ? '#09171C' : '#F7F1E7';
     // update button aria
     const btn = document.getElementById('themeToggle');
     if(btn){

@@ -944,3 +944,11 @@ Avoid placing sensitive customer or driver details on the first screen when the 
 ### Updated definition of “ready”
 
 The site is not production-ready merely because Vercel reports `READY` or Neon responds. It is ready when secrets are rotated, private routes are actually authorized, customer/driver data is protected, public claims are verified, theme and core workflows pass their acceptance tests, and the owner completes a staging walkthrough on both phone and desktop.
+
+---
+
+## 26. Implemented visual direction — Deccan Road Edition
+
+The local implementation now includes a signature-style loader, a locally illustrated Nagpur/Kondhali road hero, a Central India route map, locally labelled destination artwork, expandable service and booking-detail panels, and code-native 3D vehicle visuals. Fleet records now support `display_mode` (`3d`, `photo`, or `auto`), `model_color`, and `vehicle_type`; the owner form exposes these choices and public cards respect them. Generic Unsplash seed/gallery placeholders render as branded local travel posters instead of presenting unrelated foreign imagery. Real owner-supplied non-placeholder gallery photos remain supported.
+
+The 3D vehicles are intentionally CSS/HTML rather than heavy WebGL models: they load quickly on low-end phones, support dark mode, animate without an additional runtime, and degrade safely. If photorealistic rotatable models are required later, add optimized GLB assets only after measuring mobile download and GPU costs.

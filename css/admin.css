@@ -29,6 +29,7 @@ body.admin-bg{background: var(--bg);min-height:100vh;color:var(--text)}
 .badge.on{background:#dcfce7;border-color:#bbf7d0;color:#166534}
 .preview{width:100%;height:120px;object-fit:cover;border-radius:12px;background:#e2e8f0;border:1px dashed #cbd5e1;display:grid;place-items:center;color:#64748b;font-size:13px;overflow:hidden}
 .hint{font-size:12.5px;color:#64748b;margin-top:8px}
+.color-field{min-width:140px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:12px;font-weight:700;color:var(--muted)}.color-field input{width:42px;height:32px;border:0;background:transparent;cursor:pointer}.admin-vehicle-swatch{width:80px;height:60px;border-radius:10px;display:grid;place-items:center;font-size:28px;background:radial-gradient(circle at 50% 80%,color-mix(in srgb,var(--swatch) 44%,transparent),transparent 55%),var(--surface-elevated);border:1px solid var(--border)}.mode-btn{height:38px;min-width:42px;padding:0 10px;border-radius:999px;border:1px solid var(--border);background:var(--surface-elevated);color:var(--primary);font-weight:900;cursor:pointer}
 
 @media(max-width:720px){
   .topbar{position:sticky;padding:10px 12px;align-items:flex-start}
@@ -42,7 +43,7 @@ body.admin-bg{background: var(--bg);min-height:100vh;color:var(--text)}
   .tabs::-webkit-scrollbar{display:none}.tab{flex:0 0 auto;scroll-snap-align:start;min-height:42px}
   .panel{padding:14px;border-radius:15px}
   .toolbar{display:grid;grid-template-columns:1fr;width:100%}.field{min-width:0;width:100%}
-  .item{grid-template-columns:64px minmax(0,1fr);align-items:start;padding:10px}.item img{width:64px;height:54px}.item-actions{grid-column:1/-1;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px}
+  .item{grid-template-columns:64px minmax(0,1fr);align-items:start;padding:10px}.item img,.admin-vehicle-swatch{width:64px;height:54px}.item-actions{grid-column:1/-1;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px}
   .item[style*="grid-template-columns:1fr auto"]{grid-template-columns:1fr!important}
   .preview{height:160px}
   .pin-wrap{margin:28px 12px;padding:20px}

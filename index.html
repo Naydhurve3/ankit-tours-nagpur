@@ -9,12 +9,22 @@
 <meta property="og:description" content="Your trusted travel partner for safe & comfortable journeys.">
 <meta property="og:image" content="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#F7F5F0">
+<meta name="theme-color" content="#F7F1E7">
 <script>(function(){try{var k='att_theme',v=localStorage.getItem(k);var s=v==='light'||v==='dark'?v:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="is-loading">
+
+<div class="site-loader" id="siteLoader" role="status" aria-label="Loading Ankit Tours and Travels">
+  <div class="loader-mark" aria-hidden="true">
+    <span class="loader-road"></span>
+    <span class="loader-car">✦</span>
+  </div>
+  <div class="loader-signature" aria-hidden="true">Ankit</div>
+  <div class="loader-sub">Tours &amp; Travels</div>
+  <span class="loader-status">Preparing your journey…</span>
+</div>
 
 <a class="skip-link" href="#mainContent">Skip to main content</a>
 
@@ -55,7 +65,11 @@
 <main id="mainContent">
 <section class="hero" id="home">
   <div class="hero-bg">
-    <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1600&q=80" alt="Highway travel">
+    <div class="india-scene" aria-hidden="true">
+      <span class="scene-sun"></span><span class="scene-hill hill-one"></span><span class="scene-hill hill-two"></span>
+      <span class="scene-road"></span><span class="scene-road-line"></span>
+      <span class="scene-sign">NAGPUR <i>•</i> KONDHALI</span>
+    </div>
     <div class="hero-overlay"></div>
   </div>
   <div class="hero-inner">
@@ -101,7 +115,7 @@
     <div>
       <span class="kicker" data-i18n="about_kicker">About Us</span>
       <h2 data-i18n="about_h2">Ankit Tours & Travels, Kondhali</h2>
-      <p data-i18n="about_p1" style="color:#475569;margin:10px 0">We provide reliable travel services from Kondhali, Nagpur and nearby areas. Airport transfers, local sightseeing, outstation tours, wildlife safari packages, pilgrimage tours and corporate solutions - all with a focus on safety, punctuality and comfort.</p>
+      <p data-i18n="about_p1" class="about-copy">We provide reliable travel services from Kondhali, Nagpur and nearby areas. Airport transfers, local sightseeing, outstation tours, wildlife safari packages, pilgrimage tours and corporate solutions - all with a focus on safety, punctuality and comfort.</p>
       <p data-i18n="about_p2" class="small muted">Near Bank of India, Kondhali. Serving families, groups and corporates with Ertiga, Innova and Tempo Traveller fleet.</p>
       <div class="about-stats">
         <div><b>500+</b><br><span class="small muted" data-i18n="stat1">Happy Trips</span></div>
@@ -109,8 +123,13 @@
         <div><b>24x7</b><br><span class="small muted" data-i18n="stat3">Support</span></div>
       </div>
     </div>
-    <div class="glass-card" style="padding:0;overflow:hidden">
-      <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80" alt="Road trip" style="height:320px;object-fit:cover;width:100%">
+    <div class="glass-card local-map-card" style="padding:0;overflow:hidden">
+      <div class="local-route-map" role="img" aria-label="Stylised route map connecting Nagpur, Kondhali, Tadoba and Pench">
+        <span class="map-route route-a"></span><span class="map-route route-b"></span><span class="map-route route-c"></span>
+        <span class="map-pin pin-nagpur"><i></i>Nagpur</span><span class="map-pin pin-kondhali"><i></i>Kondhali</span>
+        <span class="map-pin pin-tadoba"><i></i>Tadoba</span><span class="map-pin pin-pench"><i></i>Pench</span>
+        <b>Central India journeys,<br>planned locally.</b>
+      </div>
       <div style="padding:16px;display:flex;gap:10px;flex-wrap:wrap">
         <span class="tag">✓ Verified Drivers</span><span class="tag">✓ Sanitized Vehicles</span><span class="tag">✓ Kondhali • Nagpur</span>
       </div>
@@ -137,13 +156,32 @@
     <span class="kicker" data-i18n="kicker_services">Our Services</span>
     <h2 data-i18n="services_h2">Everything You Need for the Road</h2>
   </div>
-  <div class="grid grid-3">
-    <div class="glass-card"><div class="icon-box">✈️</div><h3 data-i18n="s1_t">Airport Transfers</h3><p data-i18n="s1_p">Convenient pickup & drop to Nagpur Airport.</p><span class="price-tag">Nagpur Airport • On-time</span></div>
-    <div class="glass-card"><div class="icon-box">🗺️</div><h3 data-i18n="s2_t">Outstation Tours</h3><p data-i18n="s2_p">Comfortable trips across Maharashtra & Central India.</p><span class="price-tag">₹14 - ₹22 /km</span></div>
-    <div class="glass-card"><div class="icon-box">🐅</div><h3 data-i18n="s3_t">Tadoba & Pench Safari</h3><p data-i18n="s3_p">Wildlife packages with stay, Gypsy & transport.</p><span class="price-tag">Stay + Safari</span></div>
-    <div class="glass-card"><div class="icon-box">🛕</div><h3 data-i18n="s4_t">Pilgrimage Tours</h3><p data-i18n="s4_p">Shirdi, Jyotirlinga & religious circuits.</p><span class="price-tag">Shirdi • Jyotirlinga</span></div>
-    <div class="glass-card"><div class="icon-box">💼</div><h3 data-i18n="s5_t">Corporate Travel</h3><p data-i18n="s5_p">Professional travel for companies & employees.</p><span class="price-tag">Invoices Available</span></div>
-    <div class="glass-card"><div class="icon-box">🚐</div><h3 data-i18n="s6_t">Vehicle Rental</h3><p data-i18n="s6_p">Ertiga, Innova, Tempo Traveller on hire.</p><span class="price-tag">6 / 7 / 12 Seater</span></div>
+  <div class="grid grid-3 service-grid">
+    <article class="glass-card service-card"><div class="service-top"><div class="icon-box">✈️</div><span class="price-tag">Nagpur Airport</span></div><h3 data-i18n="s1_t">Airport Transfers</h3><p data-i18n="s1_p">Convenient pickup & drop to Nagpur Airport.</p><div class="service-extra"><span>Pickup scheduling</span><span>Flight-time coordination</span></div><button class="service-toggle" type="button" aria-expanded="false">View details <b>＋</b></button></article>
+    <article class="glass-card service-card"><div class="service-top"><div class="icon-box">🗺️</div><span class="price-tag">Maharashtra</span></div><h3 data-i18n="s2_t">Outstation Tours</h3><p data-i18n="s2_p">Comfortable trips across Maharashtra & Central India.</p><div class="service-extra"><span>One-way or return</span><span>Fare confirmed before travel</span></div><button class="service-toggle" type="button" aria-expanded="false">View details <b>＋</b></button></article>
+    <article class="glass-card service-card"><div class="service-top"><div class="icon-box">🐅</div><span class="price-tag">Tadoba • Pench</span></div><h3 data-i18n="s3_t">Tadoba & Pench Safari</h3><p data-i18n="s3_p">Wildlife packages with stay, Gypsy & transport.</p><div class="service-extra"><span>Route and stay planning</span><span>Permit availability confirmed separately</span></div><button class="service-toggle" type="button" aria-expanded="false">View details <b>＋</b></button></article>
+    <article class="glass-card service-card"><div class="service-top"><div class="icon-box">🛕</div><span class="price-tag">Shirdi • Jyotirlinga</span></div><h3 data-i18n="s4_t">Pilgrimage Tours</h3><p data-i18n="s4_p">Shirdi, Jyotirlinga & religious circuits.</p><div class="service-extra"><span>Family and group vehicles</span><span>Custom halt planning</span></div><button class="service-toggle" type="button" aria-expanded="false">View details <b>＋</b></button></article>
+    <article class="glass-card service-card"><div class="service-top"><div class="icon-box">💼</div><span class="price-tag">Business travel</span></div><h3 data-i18n="s5_t">Corporate Travel</h3><p data-i18n="s5_p">Professional travel for companies & employees.</p><div class="service-extra"><span>Scheduled employee travel</span><span>Invoice support when available</span></div><button class="service-toggle" type="button" aria-expanded="false">View details <b>＋</b></button></article>
+    <article class="glass-card service-card"><div class="service-top"><div class="icon-box">🚐</div><span class="price-tag">6 • 7 • 12+ seats</span></div><h3 data-i18n="s6_t">Vehicle Rental</h3><p data-i18n="s6_p">Ertiga, Innova, Tempo Traveller on hire.</p><div class="service-extra"><span>Vehicle based on group size</span><span>Driver and fare confirmed by owner</span></div><button class="service-toggle" type="button" aria-expanded="false">View details <b>＋</b></button></article>
+  </div>
+</section>
+
+<section class="section route-showcase reveal" id="routes">
+  <div class="section-head"><span class="kicker">Local routes</span><h2>From Nagpur to the journeys that matter</h2><p>Purpose-built route artwork keeps the website local without using unrelated foreign photographs.</p></div>
+  <div class="route-grid">
+    <article class="route-tile airport"><span>✈</span><small>Airport</small><h3>Nagpur Airport</h3><p>Pickup and drop enquiries</p></article>
+    <article class="route-tile forest"><span>🐅</span><small>Wildlife</small><h3>Tadoba &amp; Pench</h3><p>Transport and trip planning</p></article>
+    <article class="route-tile temple"><span>ॐ</span><small>Pilgrimage</small><h3>Shirdi Circuit</h3><p>Family and group journeys</p></article>
+    <article class="route-tile local"><span>⌖</span><small>Local</small><h3>Kondhali &amp; Nagpur</h3><p>Reliable regional transport</p></article>
+  </div>
+</section>
+
+<section class="section essentials reveal" aria-labelledby="essentialsTitle">
+  <div class="section-head"><span class="kicker">Before you book</span><h2 id="essentialsTitle">Important details, only when you need them</h2></div>
+  <div class="essentials-grid">
+    <details class="trip-detail"><summary><span>₹</span><div><b>Fare &amp; payment</b><small>How the final amount works</small></div><i>＋</i></summary><p>Displayed prices are starting references. Vehicle availability, route, tolls, parking, driver allowance and trip timing can affect the final owner-confirmed quote.</p></details>
+    <details class="trip-detail"><summary><span>◷</span><div><b>Availability</b><small>Vehicle and driver confirmation</small></div><i>＋</i></summary><p>A visible vehicle is not automatically available for every date. The owner confirms both the selected vehicle and driver before the booking is final.</p></details>
+    <details class="trip-detail"><summary><span>✓</span><div><b>Booking status</b><small>Enquiry versus confirmation</small></div><i>＋</i></summary><p>Submitting a form or WhatsApp message creates an enquiry. Your journey is confirmed only after the owner replies with the final details.</p></details>
   </div>
 </section>
 

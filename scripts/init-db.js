@@ -8,7 +8,7 @@ const sql = neon(url);
 
 async function run(){
   console.log('Connecting to Neon...');
-  await sql`CREATE TABLE IF NOT EXISTS fleet (id SERIAL PRIMARY KEY, name TEXT NOT NULL, seating TEXT, price TEXT, features TEXT, image TEXT, visible BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now(), status TEXT DEFAULT 'published', sort_order INT DEFAULT 0)`;
+  await sql`CREATE TABLE IF NOT EXISTS fleet (id SERIAL PRIMARY KEY, name TEXT NOT NULL, seating TEXT, price TEXT, features TEXT, image TEXT, display_mode TEXT DEFAULT '3d', model_color TEXT DEFAULT '#d96c2c', vehicle_type TEXT DEFAULT 'suv', visible BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now(), status TEXT DEFAULT 'published', sort_order INT DEFAULT 0)`;
   await sql`CREATE TABLE IF NOT EXISTS packages (id SERIAL PRIMARY KEY, service TEXT NOT NULL, vehicle TEXT, price TEXT, note TEXT, visible BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT now(), status TEXT DEFAULT 'published')`;
   await sql`CREATE TABLE IF NOT EXISTS gallery (id SERIAL PRIMARY KEY, src TEXT NOT NULL, category TEXT, title TEXT, visible BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT now())`;
   await sql`CREATE TABLE IF NOT EXISTS testimonials (id SERIAL PRIMARY KEY, name TEXT NOT NULL, place TEXT, text TEXT NOT NULL, rating INT DEFAULT 5, visible BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT now(), consent BOOLEAN DEFAULT false)`;
@@ -23,6 +23,9 @@ async function run(){
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new'`; }catch{}
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS pickup TEXT`; }catch{}
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS destination TEXT`; }catch{}
+  try{ await sql`ALTER TABLE fleet ADD COLUMN IF NOT EXISTS display_mode TEXT DEFAULT '3d'`; }catch{}
+  try{ await sql`ALTER TABLE fleet ADD COLUMN IF NOT EXISTS model_color TEXT DEFAULT '#d96c2c'`; }catch{}
+  try{ await sql`ALTER TABLE fleet ADD COLUMN IF NOT EXISTS vehicle_type TEXT DEFAULT 'suv'`; }catch{}
   console.log('Tables created (including drivers/audit/sessions)');
 
   // seed if empty
@@ -30,7 +33,7 @@ async function run(){
   if (parseInt(fleetCount[0].c)===0){
     console.log('Seeding...');
     const seed = JSON.parse(fs.readFileSync('assets/data/site-data.json','utf8'));
-    for (const f of seed.fleet){ await sql`INSERT INTO fleet (name,seating,price,features,image,visible) VALUES (${f.name},${f.seating},${f.price},${f.features},${f.image},${f.visible})`; }
+    for (const f of seed.fleet){ await sql`INSERT INTO fleet (name,seating,price,features,image,display_mode,model_color,vehicle_type,visible) VALUES (${f.name},${f.seating},${f.price},${f.features},${f.image},${f.display_mode||'3d'},${f.model_color||'#d96c2c'},${f.vehicle_type||'suv'},${f.visible})`; }
     for (const p of seed.packages){ await sql`INSERT INTO packages (service,vehicle,price,note,visible) VALUES (${p.service},${p.vehicle},${p.price},${p.note},${p.visible})`; }
     for (const g of seed.gallery){ await sql`INSERT INTO gallery (src,category,title,visible) VALUES (${g.src},${g.category},${g.title},${g.visible})`; }
     for (const t of seed.testimonials){ await sql`INSERT INTO testimonials (name,place,text,rating,visible) VALUES (${t.name},${t.place},${t.text},${t.rating},${t.visible})`; }

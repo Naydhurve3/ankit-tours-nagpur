@@ -144,20 +144,24 @@ function renderFleetAdmin(){
       <input id="f_features" class="field" placeholder="Features e.g. AC • Music">
     </div>
     <div class="toolbar">
-      <input id="f_image" class="field" placeholder="https:// image URL only (no base64)" style="flex:2">
+      <select id="f_display" class="field"><option value="3d">3D vehicle only</option><option value="photo">Owner photo only</option><option value="auto">3D + visitor photo switch</option></select>
+      <select id="f_type" class="field"><option value="suv">SUV / MPV</option><option value="sedan">Sedan</option><option value="traveller">Tempo Traveller / Van</option></select>
+      <label class="color-field">3D colour <input id="f_color" type="color" value="#d96c2c"></label>
+      <input id="f_image" class="field" placeholder="Optional https photo URL" style="flex:2">
     </div>
     <div style="margin-top:10px;display:flex;gap:8px">
       <button class="btn-sm primary" onclick="addFleet()">+ Add Vehicle</button>
-      <span class="hint">Use https URL. Eye = hide/show on public.</span>
+      <span class="hint">Choose 3D, photo, or both. A photo URL is required only for Photo mode. Eye = hide/show.</span>
     </div>
     <div class="list" style="margin-top:14px">${data.fleet.map((f,i)=>`
       <div class="item ${f.visible===false?'off':''}">
-        <img src="${f.image}" onerror="this.style.background='#e2e8f0'">
+        ${f.display_mode==='photo'&&f.image?`<img src="${f.image}" onerror="this.style.background='#e2e8f0'">`:`<div class="admin-vehicle-swatch" style="--swatch:${/^#[0-9a-f]{6}$/i.test(f.model_color||'')?f.model_color:'#d96c2c'}">🚕</div>`}
         <div>
           <b>${escapeHtml(f.name)}</b> <span class="badge ${f.visible!==false?'on':''}">${f.visible!==false?'Visible':'Hidden'}</span><br>
-          <span class="small muted">${escapeHtml(f.seating)} • ${escapeHtml(f.price)} • ${escapeHtml(f.features||'')}</span>
+          <span class="small muted">${escapeHtml(f.seating)} • ${escapeHtml(f.price)} • ${escapeHtml(f.features||'')}</span><br><span class="badge">${escapeHtml((f.display_mode||'3d').toUpperCase())} visual</span>
         </div>
         <div class="item-actions">
+          <button class="mode-btn" title="Cycle 3D / Photo / Auto" onclick="cycleFleetMode(${i}, ${f.id})">${f.display_mode==='photo'?'📷':f.display_mode==='auto'?'◐':'◈'}</button>
           <button class="icon-btn" title="Hide/Show" onclick="toggleFleet(${i}, ${f.id})">${f.visible!==false?'👁️':'🚫'}</button>
           <button class="icon-btn danger" title="Delete" onclick="delFleet(${i}, ${f.id})">✕</button>
         </div>
@@ -237,16 +241,34 @@ async function addFleet(){
   const seating=document.getElementById("f_seating").value.trim()||"—";
   const price=document.getElementById("f_price").value.trim()||"On Request";
   const features=document.getElementById("f_features").value.trim();
-  const image=document.getElementById("f_image").value.trim() || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600";
+  const image=document.getElementById("f_image").value.trim();
+  const display_mode=document.getElementById("f_display").value;
+  const vehicle_type=document.getElementById("f_type").value;
+  const model_color=document.getElementById("f_color").value;
   if(!name){ toast("Enter vehicle name"); return; }
+  if(display_mode==='photo' && !image){ toast('Photo mode needs an https image URL'); return; }
   if(image.startsWith('data:')){ toast('Base64 not allowed - use https URL'); return; }
   if(useApi){
-    const res = await fetch('/api/fleet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,seating,price,features,image,visible:true})});
+    const res = await fetch('/api/fleet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,seating,price,features,image,display_mode,model_color,vehicle_type,visible:true})});
     if(res.ok){ const row=await res.json(); data.fleet.unshift(row); render(); toast('Added to Neon DB'); } else { const j=await res.json(); toast(j.error||'API failed'); }
   } else {
-    data.fleet.unshift({id:"f"+Date.now(), name, seating, price, features, image, visible:true});
+    data.fleet.unshift({id:"f"+Date.now(), name, seating, price, features, image, display_mode, model_color, vehicle_type, visible:true});
     saveLocal(data); render(); toast("Vehicle added.");
   }
+}
+async function cycleFleetMode(i, id){
+  const cur=data.fleet[i]; if(!cur) return;
+  const modes=['3d','photo','auto'];
+  const current=modes.includes(cur.display_mode)?cur.display_mode:'3d';
+  let next=modes[(modes.indexOf(current)+1)%modes.length];
+  if(next==='photo'&&!cur.image){ next='auto'; toast('No photo URL saved; switched to Auto instead'); }
+  const updated={...cur,display_mode:next};
+  if(useApi&&id){
+    const res=await fetch('/api/fleet',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)});
+    if(!res.ok){ const j=await res.json().catch(()=>({})); toast(j.error||'Display update failed'); return; }
+    data.fleet[i]=await res.json();
+  }else{ data.fleet[i]=updated; saveLocal(data); }
+  render(); toast(`Vehicle visual: ${next.toUpperCase()}`);
 }
 async function toggleFleet(i, id){ 
   if(useApi && id){

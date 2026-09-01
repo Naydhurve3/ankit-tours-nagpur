@@ -7,6 +7,9 @@
       "price": "₹14 / km",
       "features": "AC • Music System • Luggage Space",
       "image": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600&q=80",
+      "display_mode": "3d",
+      "model_color": "#b84b35",
+      "vehicle_type": "suv",
       "visible": true
     },
     {
@@ -16,6 +19,9 @@
       "price": "₹18 / km",
       "features": "AC • Captain Seats • Premium Comfort",
       "image": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&q=80",
+      "display_mode": "3d",
+      "model_color": "#2f6678",
+      "vehicle_type": "suv",
       "visible": true
     },
     {
@@ -25,6 +31,9 @@
       "price": "₹22 / km",
       "features": "AC • Pushback Seats • Group Travel",
       "image": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80",
+      "display_mode": "3d",
+      "model_color": "#c78b32",
+      "vehicle_type": "traveller",
       "visible": true
     }
   ],
