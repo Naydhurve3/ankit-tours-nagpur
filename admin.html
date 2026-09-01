@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Private Admin - Ankit Tours & Travels</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-bg">
+
+<div id="gate" class="pin-wrap">
+  <h2 style="color:#0f4c81;font-family:Poppins,sans-serif">Owner Private Access</h2>
+  <p class="small muted">Enter PIN to manage Fleet, Packages, Gallery & Testimonials. Public site shows only Visible items.</p>
+  <input id="pinInput" type="password" placeholder="Enter PIN (7276)" maxlength="6">
+  <button id="pinBtn" class="btn btn-primary" style="width:100%;justify-content:center">Unlock Dashboard</button>
+  <p id="pinMsg" class="small" style="color:#b91c1c;margin-top:8px"></p>
+  <p class="hint">Demo: PIN is <b>7276</b> (last 4 of 7276066532). Append <code>?pin=7276</code> to URL to auto-unlock.<br>Public view: <a href="index.html" style="color:#0f4c81;font-weight:700">index.html</a></p>
+</div>
+
+<div id="dashboard" class="hidden">
+  <div class="topbar">
+    <h1>★ Ankit Tours - Owner Panel <span style="font-weight:400;font-size:12px;background:#dcfce7;color:#166534;padding:4px 8px;border-radius:999px">Private</span></h1>
+    <div class="topbar-actions">
+      <button class="btn-sm" id="viewPublicBtn">View Public Site ↗</button>
+      <button class="btn-sm" id="saveBtn">💾 Save</button>
+      <button class="btn-sm" id="exportBtn">⬇ Export JSON</button>
+      <button class="btn-sm" id="resetBtn" style="color:#b91c1c">Reset</button>
+    </div>
+  </div>
+
+  <div class="admin-shell">
+    <div class="tabs">
+      <button class="tab active" data-tab="fleet">🚐 Fleet</button>
+      <button class="tab" data-tab="packages">💰 Packages</button>
+      <button class="tab" data-tab="gallery">🖼️ Gallery</button>
+      <button class="tab" data-tab="testimonials">⭐ Testimonials</button>
+    </div>
+
+    <div id="panel" class="panel"></div>
+
+    <div class="panel">
+      <h3>How Private/Public Works</h3>
+      <ul class="small muted" style="line-height:1.8;margin-left:18px">
+        <li><b>Private (this page):</b> Only owner opens <code>admin.html</code>. Add vehicle/image/testimonial or toggle 👁️ to hide. Data saves to browser <code>localStorage</code>.</li>
+        <li><b>Public (index.html):</b> Visitors see only items where Visible = ON. Hidden items stay in admin but not displayed publicly.</li>
+        <li><b>Persist permanently:</b> Click <b>Export JSON</b> and replace <code>assets/data/site-data.json</code> - then changes survive on all devices & after cache clear.</li>
+        <li><b>Image options:</b> Paste Unsplash URL OR upload (base64 stored locally, ~5MB limit). For many images use URLs.</li>
+        <li>Future: swap <code>js/data.js</code> to Firebase/Supabase for cloud sync without Export.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="hidden" style="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f4c81;color:white;padding:10px 16px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.2);font-weight:600;z-index:99"></div>
+
+<script src="js/data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

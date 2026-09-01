@@ -1,0 +1,125 @@
+const I18N = {
+  en: {
+    nav_home:"Home", nav_about:"About", nav_services:"Services", nav_fleet:"Fleet", nav_packages:"Packages", nav_gallery:"Gallery", nav_contact:"Contact",
+    hero_badge:"Trusted in Kondhali • Nagpur since 2016",
+    hero_h1:"Your Trusted Travel Partner for Safe & Comfortable Journeys",
+    hero_p:"Airport transfers, Tadoba & Pench safaris, pilgrimage & corporate tours from Kondhali, Nagpur. Reliable drivers, clean vehicles, on-time every time.",
+    hero_cta1:"Book on WhatsApp", hero_cta2:"Call 7276066532",
+    hero_form_title:"Quick Enquiry", hero_form_sub:"Get instant quote on WhatsApp",
+    ph_name:"Your Name", ph_phone:"Phone Number", ph_date:"Travel Date", ph_pick:"Service • Vehicle",
+    btn_get_quote:"Get Quote on WhatsApp", trust:"✓ Trusted by 500+ travellers ✓ 24x7 Support",
+    kicker_why:"Why Choose Us", why_h2:"Travel with Confidence", why_p:"We blend reliability of a local Nagpur operator with premium comfort.",
+    why1_t:"Experienced Drivers", why1_p:"Verified, courteous drivers who know Maharashtra routes.",
+    why2_t:"Clean & Safe Vehicles", why2_p:"Regularly sanitized Ertiga, Innova, Traveller.",
+    why3_t:"On-Time Always", why3_p:"Airport & safari pickups with live tracking assistance.",
+    why4_t:"Transparent Pricing", why4_p:"No hidden charges. Clear per-km & package rates.",
+    kicker_services:"Our Services", services_h2:"Everything You Need for the Road",
+    s1_t:"Airport Transfers", s1_p:"Convenient pickup & drop to Nagpur Airport - on time, every time.",
+    s2_t:"Outstation Tours", s2_p:"Comfortable trips across Maharashtra & Central India.",
+    s3_t:"Tadoba & Pench Safari", s3_p:"Wildlife packages with stay, Gypsy & transport.",
+    s4_t:"Pilgrimage Tours", s4_p:"Shirdi, Jyotirlinga & religious circuits.",
+    s5_t:"Corporate Travel", s5_p:"Professional travel for companies & employees.",
+    s6_t:"Vehicle Rental", s6_p:"Ertiga, Innova, Tempo Traveller on hire.",
+    fleet_kicker:"Our Fleet", fleet_h2:"Choose Your Ride", fleet_p:"Well-maintained, air-conditioned vehicles for every group size.",
+    pkg_kicker:"Packages & Pricing", pkg_h2:"Clear, Honest Pricing", pkg_p:"Tap Book to get final quote on WhatsApp. Toll & driver allowance extra where applicable.",
+    th_service:"Service", th_vehicle:"Vehicle", th_price:"Price", th_note:"Note", th_action:"Action",
+    btn_book:"Book Now",
+    gal_kicker:"Photo Gallery", gal_h2:"Journeys in Frames", gal_p:"Fleet, jungle & pilgrimage moments - managed by owner, visible here when enabled.",
+    testi_kicker:"Testimonials", testi_h2:"Travellers Trust Us",
+    about_kicker:"About Us", about_h2:"Ankit Tours & Travels, Kondhali",
+    about_p1:"We provide reliable travel services from Kondhali, Nagpur and nearby areas. Airport transfers, local sightseeing, outstation tours, wildlife safari packages, pilgrimage tours and corporate solutions - all with a focus on safety, punctuality and comfort.",
+    about_p2:"Near Bank of India, Kondhali. Serving families, groups and corporates with Ertiga, Innova and Tempo Traveller fleet.",
+    stat1:"500+ Happy Trips", stat2:"6 Services", stat3:"24x7 Support",
+    contact_kicker:"Contact Us", contact_h2:"Let's Plan Your Trip",
+    form_name:"Full Name", form_phone:"Mobile Number", form_service:"Select Service", form_msg:"Message / Destination & Date",
+    btn_send_wa:"Send on WhatsApp", map_title:"Find us on Map", map_sub:"Near Bank of India, Kondhali, Nagpur, Maharashtra",
+    addr:"Office Address", phone_label:"Mobile / WhatsApp"
+  },
+  hi: {
+    nav_home:"होम", nav_about:"हमारे बारे में", nav_services:"सेवाएँ", nav_fleet:"गाड़ियाँ", nav_packages:"पैकेज", nav_gallery:"गैलरी", nav_contact:"संपर्क",
+    hero_badge:"कोंढाली • नागपुर में विश्वसनीय",
+    hero_h1:"सुरक्षित और आरामदायक यात्रा के लिए आपका विश्वसनीय साथी",
+    hero_p:"कोंढाली, नागपुर से एयरपोर्ट ट्रांसफर, तडोबा-पेंच सफारी, तीर्थ और कॉर्पोरेट टूर। भरोसेमंद ड्राइवर, साफ गाड़ियाँ, समय पर सेवा।",
+    hero_cta1:"WhatsApp पर बुक करें", hero_cta2:"कॉल 7276066532",
+    hero_form_title:"त्वरित पूछताछ", hero_form_sub:"WhatsApp पर तुरंत कोट पाएं",
+    ph_name:"आपका नाम", ph_phone:"फोन नंबर", ph_date:"यात्रा तिथि", ph_pick:"सेवा • गाड़ी",
+    btn_get_quote:"WhatsApp पर कोट पाएं", trust:"✓ 500+ यात्रियों का भरोसा ✓ 24x7 सहायता",
+    kicker_why:"हमें क्यों चुनें", why_h2:"विश्वास के साथ यात्रा", why_p:"स्थानीय भरोसा और प्रीमियम आराम का संगम।",
+    why1_t:"अनुभवी ड्राइवर", why1_p:"सत्यापित, विनम्र ड्राइवर जो मार्ग जानते हैं।",
+    why2_t:"साफ-सुरक्षित गाड़ियाँ", why2_p:"नियमित सैनिटाइज़्ड Ertiga, Innova, Traveller।",
+    why3_t:"समय पर सेवा", why3_p:"एयरपोर्ट और सफारी पिकअप समय पर।",
+    why4_t:"पारदर्शी किराया", why4_p:"कोई छिपा शुल्क नहीं।",
+    kicker_services:"हमारी सेवाएँ", services_h2:"सड़क के लिए सब कुछ",
+    s1_t:"एयरपोर्ट ट्रांसफर", s1_p:"नागपुर एयरपोर्ट पिकअप/ड्रॉप - समय पर।",
+    s2_t:"आउटस्टेशन टूर", s2_p:"महाराष्ट्र और मध्य भारत में आरामदायक यात्राएँ।",
+    s3_t:"तडोबा-पेंच सफारी", s3_p:"ठहरने, जिप्सी और परिवहन सहित पैकेज।",
+    s4_t:"तीर्थ यात्रा", s4_p:"शिरडी, ज्योतिर्लिंग सर्किट।",
+    s5_t:"कॉर्पोरेट यात्रा", s5_p:"कंपनियों के लिए पेशेवर व्यवस्था।",
+    s6_t:"वाहन किराया", s6_p:"Ertiga, Innova, Tempo Traveller।",
+    fleet_kicker:"हमारा बेड़ा", fleet_h2:"अपनी सवारी चुनें", fleet_p:"हर ग्रुप के लिए अच्छी गाड़ियाँ।",
+    pkg_kicker:"पैकेज और किराया", pkg_h2:"साफ और ईमानदार किराया", pkg_p:"बुक पर WhatsApp पर अंतिम कोट।",
+    th_service:"सेवा", th_vehicle:"वाहन", th_price:"किराया", th_note:"नोट", th_action:"बुक",
+    btn_book:"बुक करें",
+    gal_kicker:"फोटो गैलरी", gal_h2:"यात्राओं की झलकियाँ", gal_p:"बेड़ा, जंगल और तीर्थ - मालिक द्वारा प्रबंधित।",
+    testi_kicker:"प्रशंसापत्र", testi_h2:"यात्रियों का भरोसा",
+    about_kicker:"हमारे बारे में", about_h2:"अंकित टूर्स & ट्रैवल्स, कोंढाली",
+    about_p1:"हम कोंढाली, नागपुर और आसपास विश्वसनीय यात्रा सेवाएँ देते हैं - एयरपोर्ट, दर्शनीय, आउटस्टेशन, सफारी, तीर्थ और कॉर्पोरेट।",
+    about_p2:"बैंक ऑफ इंडिया के पास, कोंढाली। Ertiga, Innova, Traveller बेड़ा।",
+    stat1:"500+ यात्राएँ", stat2:"6 सेवाएँ", stat3:"24x7 सहायता",
+    contact_kicker:"संपर्क", contact_h2:"यात्रा की योजना बनाएं",
+    form_name:"पूरा नाम", form_phone:"मोबाइल नंबर", form_service:"सेवा चुनें", form_msg:"संदेश / गंतव्य और तिथि",
+    btn_send_wa:"WhatsApp पर भेजें", map_title:"नक्शे पर देखें", map_sub:"बैंक ऑफ इंडिया के पास, कोंढाली, नागपुर",
+    addr:"कार्यालय पता", phone_label:"मोबाइल / WhatsApp"
+  },
+  mr: {
+    nav_home:"मुखपृष्ठ", nav_about:"आमच्याबद्दल", nav_services:"सेवा", nav_fleet:"गाड्या", nav_packages:"पॅकेज", nav_gallery:"गॅलरी", nav_contact:"संपर्क",
+    hero_badge:"कोंढाळी • नागपूर मध्ये विश्वसनीय",
+    hero_h1:"सुरक्षित आणि आरामदायी प्रवासासाठी तुमचा विश्वासू साथी",
+    hero_p:"कोंढाळी, नागपूर येथून विमानतळ ट्रान्सफर, ताडोबा-पेंच सफारी, तीर्थ आणि कॉर्पोरेट टूर। अनुभवी चालक, स्वच्छ गाड्या.",
+    hero_cta1:"WhatsApp वर बुक करा", hero_cta2:"कॉल 7276066532",
+    hero_form_title:"त्वरित चौकशी", hero_form_sub:"WhatsApp वर त्वरित कोट मिळवा",
+    ph_name:"तुमचे नाव", ph_phone:"फोन नंबर", ph_date:"प्रवास तारीख", ph_pick:"सेवा • वाहन",
+    btn_get_quote:"WhatsApp वर कोट मिळवा", trust:"✓ ५००+ प्रवाशांचा विश्वास ✓ २४x७ मदत",
+    kicker_why:"आम्हाला का निवडावे", why_h2:"विश्वासाने प्रवास करा", why_p:"स्थानिक विश्वास आणि प्रीमियम आराम.",
+    why1_t:"अनुभवी चालक", why1_p:"पडताळलेले, सभ्य चालक.",
+    why2_t:"स्वच्छ व सुरक्षित गाड्या", why2_p:"नियमित स्वच्छ Ertiga, Innova, Traveller.",
+    why3_t:"वेळेवर सेवा", why3_p:"विमानतळ आणि सफारी पिकअप वेळेवर.",
+    why4_t:"पारदर्शक दर", why4_p:"लपलेले शुल्क नाही.",
+    kicker_services:"आमच्या सेवा", services_h2:"प्रवासासाठी सर्व काही",
+    s1_t:"विमानतळ ट्रान्सफर", s1_p:"नागपूर विमानतळ पिकअप/ड्रॉप.",
+    s2_t:"आउटस्टेशन टूर", s2_p:"महाराष्ट्र आणि मध्य भारतात प्रवास.",
+    s3_t:"ताडोबा-पेंच सफारी", s3_p:"निवास, जिप्सी आणि वाहतूक पॅकेज.",
+    s4_t:"तीर्थ यात्रा", s4_p:"शिर्डी, ज्योतिर्लिंग सर्किट.",
+    s5_t:"कॉर्पोरेट प्रवास", s5_p:"कंपन्यांसाठी व्यवस्था.",
+    s6_t:"वाहन भाडे", s6_p:"Ertiga, Innova, Tempo Traveller.",
+    fleet_kicker:"आमचा ताफा", fleet_h2:"तुमची राईड निवडा", fleet_p:"प्रत्येक ग्रुपसाठी उत्तम गाड्या.",
+    pkg_kicker:"पॅकेज आणि दर", pkg_h2:"स्पष्ट आणि प्रामाणिक दर", pkg_p:"बुक वर WhatsApp कोट.",
+    th_service:"सेवा", th_vehicle:"वाहन", th_price:"दर", th_note:"नोंद", th_action:"बुक",
+    btn_book:"बुक करा",
+    gal_kicker:"फोटो गॅलरी", gal_h2:"प्रवासाच्या आठवणी", gal_p:"ताफा, जंगल आणि तीर्थ - मालकाद्वारे व्यवस्थापित.",
+    testi_kicker:"अभिप्राय", testi_h2:"प्रवाशांचा विश्वास",
+    about_kicker:"आमच्याबद्दल", about_h2:"अंकित टूर्स & ट्रॅव्हल्स, कोंढाळी",
+    about_p1:"आम्ही कोंढाळी, नागपूर आणि परिसरात विश्वसनीय सेवा देतो - विमानतळ, प्रेक्षणीय, आउटस्टेशन, सफारी, तीर्थ.",
+    about_p2:"बँक ऑफ इंडिया जवळ, कोंढाळी. Ertiga, Innova, Traveller ताफा.",
+    stat1:"५००+ फेऱ्या", stat2:"६ सेवा", stat3:"२४x७ मदत",
+    contact_kicker:"संपर्क", contact_h2:"सहल नियोजन करूया",
+    form_name:"पूर्ण नाव", form_phone:"मोबाईल नंबर", form_service:"सेवा निवडा", form_msg:"संदेश / गंतव्य आणि तारीख",
+    btn_send_wa:"WhatsApp वर पाठवा", map_title:"नकाशावर पहा", map_sub:"बँक ऑफ इंडिया जवळ, कोंढाळी, नागपूर",
+    addr:"कार्यालय पत्ता", phone_label:"मोबाईल / WhatsApp"
+  }
+};
+function applyI18n(lang){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    if(I18N[lang] && I18N[lang][key]) el.textContent = I18N[lang][key];
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>{
+    const key = el.getAttribute("data-i18n-ph");
+    if(I18N[lang] && I18N[lang][key]) el.placeholder = I18N[lang][key];
+  });
+  localStorage.setItem("att_lang", lang);
+  document.querySelectorAll(".lang-switch button").forEach(b=>{
+    b.classList.toggle("active", b.dataset.lang===lang);
+  });
+}

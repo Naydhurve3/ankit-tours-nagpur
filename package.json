@@ -1,0 +1,13 @@
+{
+  "name": "ankit-tours-nagpur",
+  "version": "1.0.0",
+  "description": "Ankit Tours & Travels - Kondhali Nagpur - Glassmorphism website",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "init-db": "node scripts/init-db.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}

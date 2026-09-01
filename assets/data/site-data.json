@@ -1,0 +1,135 @@
+{
+  "fleet": [
+    {
+      "id": "ertiga",
+      "name": "Ertiga",
+      "seating": "6+1 Seater",
+      "price": "₹14 / km",
+      "features": "AC • Music System • Luggage Space",
+      "image": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600&q=80",
+      "visible": true
+    },
+    {
+      "id": "innova",
+      "name": "Innova Crysta",
+      "seating": "7+1 Seater",
+      "price": "₹18 / km",
+      "features": "AC • Captain Seats • Premium Comfort",
+      "image": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&q=80",
+      "visible": true
+    },
+    {
+      "id": "traveller",
+      "name": "Tempo Traveller",
+      "seating": "12 / 17 Seater",
+      "price": "₹22 / km",
+      "features": "AC • Pushback Seats • Group Travel",
+      "image": "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&q=80",
+      "visible": true
+    }
+  ],
+  "packages": [
+    {
+      "id": "p1",
+      "service": "Airport Transfer",
+      "vehicle": "Ertiga / Innova",
+      "price": "₹1,500 onwards",
+      "note": "Nagpur Airport pickup & drop",
+      "visible": true
+    },
+    {
+      "id": "p2",
+      "service": "Outstation Tour",
+      "vehicle": "All Vehicles",
+      "price": "₹14 - ₹22 / km",
+      "note": "Driver + Toll extra",
+      "visible": true
+    },
+    {
+      "id": "p3",
+      "service": "Tadoba Safari",
+      "vehicle": "Innova + Gypsy",
+      "price": "₹8,500 / day",
+      "note": "Stay + Safari + Transport",
+      "visible": true
+    },
+    {
+      "id": "p4",
+      "service": "Pilgrimage - Shirdi",
+      "vehicle": "Ertiga / Traveller",
+      "price": "₹12,000 onwards",
+      "note": "2 Days / 1 Night",
+      "visible": true
+    }
+  ],
+  "gallery": [
+    {
+      "id": "g1",
+      "src": "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&q=80",
+      "category": "fleet",
+      "title": "Ertiga - Family Comfort",
+      "visible": true
+    },
+    {
+      "id": "g2",
+      "src": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80",
+      "category": "fleet",
+      "title": "Innova Crysta Premium",
+      "visible": true
+    },
+    {
+      "id": "g3",
+      "src": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+      "category": "safari",
+      "title": "Tadoba Tiger Reserve",
+      "visible": true
+    },
+    {
+      "id": "g4",
+      "src": "https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=800&q=80",
+      "category": "safari",
+      "title": "Pench Jungle Safari",
+      "visible": true
+    },
+    {
+      "id": "g5",
+      "src": "https://images.unsplash.com/photo-1561361058-c24cecae35ca?w=800&q=80",
+      "category": "pilgrimage",
+      "title": "Shirdi Sai Baba Temple",
+      "visible": true
+    },
+    {
+      "id": "g6",
+      "src": "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800&q=80",
+      "category": "pilgrimage",
+      "title": "Jyotirlinga Yatra",
+      "visible": true
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "t1",
+      "name": "Rahul Sharma",
+      "place": "Nagpur → Tadoba",
+      "text": "Excellent service! Driver was very professional and vehicle was clean. Safari booking was hassle-free. Highly recommend Ankit Tours.",
+      "rating": 5,
+      "visible": true
+    },
+    {
+      "id": "t2",
+      "name": "Priya Deshmukh",
+      "place": "Airport Transfer",
+      "text": "On-time pickup from Nagpur Airport at 2 AM. Very safe and comfortable journey to Kondhali. Fair pricing!",
+      "rating": 5,
+      "visible": true
+    },
+    {
+      "id": "t3",
+      "name": "Amit Patel - Corporate",
+      "place": "Corporate Booking",
+      "text": "We regularly book Innova for our office trips. Always reliable and well-maintained vehicles. Great for business travel.",
+      "rating": 5,
+      "visible": true
+    }
+  ]
+}
