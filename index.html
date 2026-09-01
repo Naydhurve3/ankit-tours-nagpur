@@ -8,6 +8,9 @@
 <meta property="og:title" content="Ankit Tours & Travels - Kondhali Nagpur">
 <meta property="og:description" content="Your trusted travel partner for safe & comfortable journeys.">
 <meta property="og:image" content="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F7F5F0">
+<script>(function(){try{var k='att_theme',v=localStorage.getItem(k);var s=v==='light'||v==='dark'?v:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -26,6 +29,7 @@
       <a href="#contact" data-i18n="nav_contact">Contact</a>
     </div>
     <div class="nav-actions">
+      <button id="themeToggle" class="theme-btn" aria-label="Switch to dark theme" title="Switch to dark theme">🌙</button>
       <div class="lang-switch" aria-label="Language">
         <button data-lang="en" class="active">EN</button>
         <button data-lang="hi">हिं</button>
@@ -138,7 +142,6 @@
     <p data-i18n="fleet_p">Well-maintained, air-conditioned vehicles for every group size. Owner controls visibility via Private admin.</p>
   </div>
   <div class="fleet-grid" id="fleetGrid"></div>
-  <p class="small muted" style="text-align:center;margin-top:12px">Private admin: <a href="admin.html" style="color:var(--primary);font-weight:700;text-decoration:underline">admin.html</a> (PIN: 7276) to add/hide vehicles shown above.</p>
 </section>
 
 <section class="section reveal" id="packages">
@@ -219,7 +222,7 @@
     <div style="font-family:Poppins,sans-serif;font-weight:700;font-size:18px">Ankit Tours & Travels</div>
     <div class="small" style="opacity:.85">Near Bank of India, Kondhali, Nagpur • Call: 7276066532</div>
     <div class="footer-links">
-      <a href="#services">Services</a><a href="#fleet">Fleet</a><a href="#packages">Packages</a><a href="admin.html">Owner Private Access</a>
+      <a href="#services">Services</a><a href="#fleet">Fleet</a><a href="#packages">Packages</a><a href="#contact">Contact</a>
     </div>
     <div class="small" style="opacity:.7">© 2026 Ankit Tours & Travels. All Rights Reserved. • Glass Edition</div>
   </div>
@@ -237,6 +240,7 @@
   </div>
 </dialog>
 
+<script src="js/theme.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/data.js"></script>
 <script src="js/main.js"></script>

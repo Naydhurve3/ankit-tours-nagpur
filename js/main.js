@@ -69,19 +69,20 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   document.getElementById("contactForm")?.addEventListener("submit", handleContactForm);
 });
 
+function esc(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function renderFleet(fleet){
   const wrap = document.getElementById("fleetGrid");
   if(!wrap) return;
   const items = visibleOnly(fleet);
-  if(items.length===0){ wrap.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center">No vehicles visible. Owner can enable in Private admin.</p>'; return;}
+  if(items.length===0){ wrap.innerHTML = '<p class="muted" style="grid-column:1/-1;text-align:center">No vehicles available at the moment.</p>'; return;}
   wrap.innerHTML = items.map(f=> `
     <article class="glass-card fleet-card reveal in">
-      <img src="${f.image}" alt="${f.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600'">
+      <img src="${esc(f.image)}" alt="${esc(f.name)}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600'">
       <div class="fleet-body">
-        <h3>${f.name}</h3>
-        <div class="fleet-meta"><span>${f.seating}</span><span>${f.price}</span></div>
-        <p class="small muted">${f.features||''}</p>
-        <a class="btn btn-primary" style="margin-top:12px;width:100%;justify-content:center" href="https://wa.me/917276066532?text=${encodeURIComponent('Hi Ankit Tours, I want to book '+f.name+' ('+f.seating+')')}" target="_blank">Book ${f.name}</a>
+        <h3>${esc(f.name)}</h3>
+        <div class="fleet-meta"><span>${esc(f.seating)}</span><span>${esc(f.price)}</span></div>
+        <p class="small muted">${esc(f.features||'')}</p>
+        <a class="btn btn-primary" style="margin-top:12px;width:100%;justify-content:center" href="https://wa.me/917276066532?text=${encodeURIComponent('Hi Ankit Tours, I want to book '+f.name+' ('+f.seating+')')}" target="_blank">Book ${esc(f.name)}</a>
       </div>
     </article>
   `).join("");
@@ -91,14 +92,14 @@ function renderPackages(pkgs){
   const tbody = document.getElementById("pkgBody");
   if(!tbody) return;
   const items = visibleOnly(pkgs);
-  if(items.length===0){ tbody.innerHTML = '<tr><td colspan="5" style="text-align:center" class="muted">No packages visible</td></tr>'; return;}
+  if(items.length===0){ tbody.innerHTML = '<tr><td colspan="5" style="text-align:center" class="muted">No packages available</td></tr>'; return;}
   tbody.innerHTML = items.map(p=> `
     <tr>
-      <td><b>${p.service}</b></td>
-      <td><span class="tag">${p.vehicle}</span></td>
-      <td><b style="color:#0f4c81">${p.price}</b></td>
-      <td class="muted small">${p.note||''}</td>
-      <td><a class="btn btn-primary" style="padding:8px 14px;font-size:13px" href="https://wa.me/917276066532?text=${encodeURIComponent('Hi, enquiry for '+p.service+' - '+p.vehicle+' - '+p.price)}" target="_blank" data-i18n="btn_book">Book Now</a></td>
+      <td><b>${esc(p.service)}</b></td>
+      <td><span class="tag">${esc(p.vehicle)}</span></td>
+      <td><b style="color:var(--primary)">${esc(p.price)}</b></td>
+      <td class="muted small">${esc(p.note||'')}</td>
+      <td><a class="btn btn-primary" style="padding:8px 14px;font-size:13px" href="https://wa.me/917276066532?text=${encodeURIComponent('Hi, enquiry for '+p.service+' - '+p.vehicle+' - '+p.price)}" target="_blank">Book Now</a></td>
     </tr>
   `).join("");
 }
@@ -107,11 +108,11 @@ function renderGallery(gallery){
   const grid = document.getElementById("galleryGrid");
   if(!grid) return;
   const items = visibleOnly(gallery);
-  if(items.length===0){ grid.innerHTML = '<p class="muted">No images visible.</p>'; return;}
+  if(items.length===0){ grid.innerHTML = '<p class="muted">No images available.</p>'; return;}
   grid.innerHTML = items.map(g=> `
-    <div class="gitem" data-category="${g.category}" data-src="${g.src}" data-title="${g.title||''}">
-      <img src="${g.src}" alt="${g.title||g.category}" loading="lazy">
-      <div class="cap">${g.title||g.category}</div>
+    <div class="gitem" data-category="${esc(g.category)}" data-src="${esc(g.src)}" data-title="${esc(g.title||'')}">
+      <img src="${esc(g.src)}" alt="${esc(g.title||g.category)}" loading="lazy">
+      <div class="cap">${esc(g.title||g.category)}</div>
     </div>
   `).join("");
 }
@@ -124,8 +125,8 @@ function renderTestimonials(tests){
   wrap.innerHTML = items.map(t=> `
     <div class="testi">
       <div class="stars">${'★'.repeat(t.rating||5)}<span style="color:#cbd5e1">${'★'.repeat(5-(t.rating||5))}</span></div>
-      <p>"${t.text}"</p>
-      <b>${t.name}</b><br><span class="small muted">${t.place||''}</span>
+      <p>"${esc(t.text)}"</p>
+      <b>${esc(t.name)}</b><br><span class="small muted">${esc(t.place||'')}</span>
     </div>
   `).join("");
 }

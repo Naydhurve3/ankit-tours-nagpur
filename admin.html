@@ -3,27 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Private Admin - Ankit Tours & Travels</title>
+<title>Owner Portal - Ankit Tours & Travels</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F7F5F0">
+<script>(function(){try{var k='att_theme',v=localStorage.getItem(k);var s=v==='light'||v==='dark'?v:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/admin.css">
 </head>
 <body class="admin-bg">
 
 <div id="gate" class="pin-wrap">
-  <h2 style="color:#0f4c81;font-family:Poppins,sans-serif">Owner Private Access</h2>
-  <p class="small muted">Enter PIN to manage Fleet, Packages, Gallery & Testimonials. Public site shows only Visible items.</p>
-  <input id="pinInput" type="password" placeholder="Enter PIN (7276)" maxlength="6">
+  <h2 style="color:#0f4c81;font-family:Poppins,sans-serif">Owner Access</h2>
+  <p class="small muted">Sign in to manage Fleet, Packages, Gallery &amp; Testimonials.</p>
+  <input id="pinInput" type="password" placeholder="Enter PIN" maxlength="6" autocomplete="current-password">
   <button id="pinBtn" class="btn btn-primary" style="width:100%;justify-content:center">Unlock Dashboard</button>
   <p id="pinMsg" class="small" style="color:#b91c1c;margin-top:8px"></p>
-  <p class="hint">Demo: PIN is <b>7276</b> (last 4 of 7276066532). Append <code>?pin=7276</code> to URL to auto-unlock.<br>Public view: <a href="index.html" style="color:#0f4c81;font-weight:700">index.html</a></p>
+  <p class="hint">Contact administrator for access. Public view: <a href="index.html" style="color:#0f4c81;font-weight:700">index.html</a></p>
 </div>
 
 <div id="dashboard" class="hidden">
   <div class="topbar">
-    <h1>★ Ankit Tours - Owner Panel <span style="font-weight:400;font-size:12px;background:#dcfce7;color:#166534;padding:4px 8px;border-radius:999px">Private</span></h1>
+    <h1>★ Ankit Tours - Owner Portal</h1>
     <div class="topbar-actions">
+      <button id="adminThemeToggle" class="theme-btn" aria-label="Switch theme" title="Switch theme">🌙</button>
+      <select id="themeSelect" class="field" style="max-width:120px"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
       <button class="btn-sm" id="viewPublicBtn">View Public Site ↗</button>
       <button class="btn-sm" id="saveBtn">💾 Save</button>
+      <button class="btn-sm" id="logoutBtn">Logout</button>
       <button class="btn-sm" id="exportBtn">⬇ Export JSON</button>
       <button class="btn-sm" id="resetBtn" style="color:#b91c1c">Reset</button>
     </div>
@@ -35,6 +41,8 @@
       <button class="tab" data-tab="packages">💰 Packages</button>
       <button class="tab" data-tab="gallery">🖼️ Gallery</button>
       <button class="tab" data-tab="testimonials">⭐ Testimonials</button>
+      <button class="tab" data-tab="drivers">👨‍✈️ Drivers</button>
+      <button class="tab" data-tab="bookings">📋 Bookings</button>
     </div>
 
     <div id="panel" class="panel"></div>
@@ -54,6 +62,7 @@
 
 <div id="toast" class="hidden" style="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f4c81;color:white;padding:10px 16px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.2);font-weight:600;z-index:99"></div>
 
+<script src="js/theme.js"></script>
 <script src="js/data.js"></script>
 <script src="js/admin.js"></script>
 </body>

@@ -1,7 +1,7 @@
 # Ankit Tours & Travels — Website Master Plan and Implementation Contract
 
 **Project folder:** `D:\Data Science & Analytics\ankit tours nagpur`  
-**Document status:** Planning and technical contract  
+**Document status:** Planning and technical contract, updated after live production review
 **Prepared:** 1 September 2026  
 **Audience:** Owner, designer, developer, and any AI agent continuing the project
 
@@ -686,3 +686,261 @@ Record answers in this table; do not guess them during development.
 Build a **Local Trust** public design and a separate mobile-friendly owner portal using a managed full-stack architecture. Launch without customer accounts, fake metrics, unverified reviews, or forced car images. Give the owner genuine no-code control over structured content, but protect it with real authentication, server-enforced authorization, managed media storage, drafts/publishing, reversible content states, enquiry management, and append-oriented activity logs.
 
 The present project is a valuable UI/content prototype. It is not yet suitable for real private administration or shared production editing; the first engineering priority is replacing the exposed PIN and browser-only persistence with the architecture described above.
+
+---
+
+## 21. Production review update — 1 September 2026
+
+### Verified live state
+
+The Vercel production site and local checkout at commit `c100d6f` were reviewed. The following behavior is currently observable:
+
+- The public page renders Fleet (3), Packages (4), Gallery (6), and Testimonials (3) from the API-backed data path.
+- Public navigation, English/Hindi/Marathi controls, WhatsApp/call actions, two enquiry forms, map, gallery lightbox, and responsive sections are present.
+- The public site is currently light-only; there is no day/night theme control and no declared colour-scheme support.
+- The admin page currently exposes its PIN in the placeholder and help text, describes the URL query bypass, and uses a frontend PIN gate.
+- The public Fleet section and footer link directly to the admin page; the Fleet section also publishes the PIN.
+- API-backed CRUD and enquiry storage have been added, but the protection model described in earlier sections has not been implemented.
+
+### Urgent production findings
+
+These issues take priority over theme or driver features:
+
+1. **Rotate the Neon database credential again immediately.** The database initialization script contains a complete database connection fallback in committed source. Remove the fallback, read only `process.env.DATABASE_URL`, rotate the credential, and purge it from Git history if the repository was public or shared. Rotation is required even if the `.env` file was ignored.
+2. **Protect all write APIs.** Fleet, package, gallery, and testimonial `POST`, `PUT`, and `DELETE` operations currently have no server-side authentication or authorization. A visitor can bypass the visual admin gate and call them directly.
+3. **Protect enquiry reads.** `GET /api/bookings` currently returns customer names, phone numbers, messages, and dates without owner authentication. Disable public GET access immediately and require an authenticated owner session.
+4. **Remove the exposed PIN and query bypass.** Remove the PIN from `index.html`, `admin.html`, JavaScript, README instructions, placeholders, public footer, and URL-query handling. An environment variable named `ADMIN_PIN` does not secure routes unless the server verifies it and establishes a protected session.
+5. **Restrict CORS.** Do not return `Access-Control-Allow-Origin: *` for protected content or mutation endpoints. Prefer same-origin requests and an explicit production origin where cross-origin access is necessary.
+6. **Stop returning raw server errors.** Database/API errors should receive a request ID and a safe public message; detailed errors belong in protected server logs.
+7. **Add server validation and safe rendering.** Bound lengths and values, validate URLs/uploads, and stop inserting owner-controlled data as unsanitized HTML.
+8. **Replace base64 database images.** Use managed object storage and store only media metadata/URLs in PostgreSQL.
+9. **Verify public claims.** The live site publishes `since 2016`, `500+`, `24/7`, `verified drivers`, `sanitized vehicles`, `live tracking`, exact prices, and named reviews. Confirm or remove each claim.
+
+### Recommended delivery order from the current deployed state
+
+```mermaid
+flowchart LR
+    A[Rotate leaked credential] --> B[Remove secret from source/history]
+    B --> C[Server-side owner authentication]
+    C --> D[Protect writes and booking reads]
+    D --> E[Validation, CORS, rate limits and safe errors]
+    E --> F[Day/night theme system]
+    F --> G[Drivers and availability]
+    G --> H[Booking assignment and customer trip link]
+    H --> I[Accessibility, performance and owner acceptance]
+```
+
+Do not add private driver records to the existing unprotected APIs.
+
+---
+
+## 22. Day/night theme specification
+
+### User experience
+
+- Add an accessible theme button in the public header and owner top bar.
+- Support three logical choices: `Light`, `Dark`, and `System`. The compact header button can toggle Light/Dark, while a small settings menu can expose System.
+- On first visit, use `prefers-color-scheme` unless a saved choice exists.
+- Save the visitor's preference locally under a non-sensitive key such as `att_theme`.
+- Apply the theme before first paint to prevent a bright flash in dark mode.
+- Set `<meta name="color-scheme" content="light dark">` and theme-colour metadata appropriate to the active mode.
+- Give the button an explicit label such as `Switch to dark theme`; do not rely only on a sun/moon icon.
+- Theme selection is a device preference and does not need to be stored in Neon.
+
+### Design direction
+
+Retain the local-trust blue/orange brand but reduce the current glass effect. Use glass only for the sticky header and selected hero surfaces; use solid, high-contrast cards for long content and the owner portal.
+
+| Token | Light | Dark |
+|---|---|---|
+| Page background | Warm off-white `#F7F5F0` | Deep navy-charcoal `#0B1220` |
+| Surface | `#FFFFFF` | `#121C2B` |
+| Elevated surface | `#F0F4F8` | `#182538` |
+| Primary text | `#172033` | `#F4F7FB` |
+| Muted text | `#5B687A` | `#A9B6C8` |
+| Brand blue | `#0F4C81` | `#62B5F2` |
+| Action orange | `#E87500` | `#FFB14A` |
+| Border | `#DCE3EA` | `#2A3B51` |
+| Success | `#18794E` | `#56D39B` |
+| Danger | `#B42318` | `#FF8178` |
+
+Final colours must pass WCAG contrast tests for their actual text/background pairs; token values may be adjusted during visual verification.
+
+### Technical contract
+
+```text
+document root: data-theme="light" | "dark"
+CSS variables: semantic tokens only (background, surface, text, accent, border)
+default: system preference
+persistence: localStorage att_theme
+reactivity: update if system changes only while user choice is System
+motion: short colour transition, disabled for prefers-reduced-motion
+```
+
+Images, map embeds, shadows, focus rings, tables, form fields, dialogs, success/error messages, and the WhatsApp control must be checked in both modes. Avoid simply inverting images or reducing all dark-mode contrast.
+
+### Theme acceptance tests
+
+- Correct theme appears before visible content paints.
+- Choice persists across reloads and public/admin navigation.
+- System choice follows operating-system changes.
+- Keyboard and screen-reader users can identify and activate the control.
+- No unreadable text, invisible borders, bright white form controls, or low-contrast placeholder text remains.
+- Both modes work at mobile and desktop breakpoints.
+
+---
+
+## 23. Drivers, vehicle availability, and trip assignment
+
+### Privacy boundary
+
+A driver is not ordinary public content. Driver phone numbers, addresses, licence numbers/images, government identity, emergency contacts, schedules, internal notes, and precise live location are private operational data. They must not be returned by public list APIs or exposed in page source.
+
+The public website may show only general trust information that the owner has verified, such as a driver display name/first name, approved profile photograph, languages, years of experience, or a general verification badge. Booking-specific contact details should appear only after a driver is assigned to a confirmed trip.
+
+### Owner portal: Drivers module
+
+```text
+Drivers
+├── Active drivers
+├── Add/edit driver
+│   ├── Internal identity and contact
+│   ├── Public-approved profile fields
+│   ├── Licence/document expiry metadata
+│   ├── Skills, languages and vehicle eligibility
+│   └── Notes (private)
+├── Availability calendar
+├── Assigned/upcoming trips
+├── Expiring documents alerts
+├── Suspend/archive/restore
+└── Driver activity audit
+```
+
+### Driver fields
+
+| Field group | Example fields | Visibility |
+|---|---|---|
+| Identity | legal name, internal driver code, date joined | Owner/staff only |
+| Contact | phone, alternate phone, emergency contact | Owner/staff; assigned customer receives approved trip contact only |
+| Public profile | display name, approved photo, languages, experience summary | Optional public/booking display |
+| Compliance | licence number, class, expiry, document storage key, verification state/date | Owner only; never public document URLs |
+| Operations | active status, eligible vehicle categories, home/base area, notes | Owner only |
+| Availability | status, start/end, reason category, source, updated by | Owner/staff; public receives coarse availability only |
+| Safety | suspension state and private reason | Owner only |
+
+Do not store more identity information than the business genuinely needs. Encrypt or use protected storage for sensitive documents, restrict access, log access, and define deletion/retention rules.
+
+### Availability states
+
+Keep vehicle status and driver status separate:
+
+```text
+Vehicle: available | held | assigned | maintenance | inactive
+Driver: available | held | assigned | leave | unavailable | inactive
+Booking: enquiry | quoted | held | confirmed | in_progress | completed | cancelled
+```
+
+A trip can be confirmed only when both an eligible vehicle and driver are available for the time window. Use database transactions or conflict checks to prevent double assignment.
+
+Public customers should see coarse wording such as `Available on request`, `Limited availability`, or `Contact for this date`. Do not expose the driver's calendar or guarantee availability until owner confirmation.
+
+### Assignment workflow
+
+```mermaid
+sequenceDiagram
+    actor Customer
+    actor Owner
+    participant Portal as Owner Portal
+    participant DB as Database
+    participant Trip as Secure Trip Page
+    Customer->>Portal: Enquiry is captured
+    Owner->>Portal: Quote and mark booking confirmed
+    Portal->>DB: Check vehicle and driver conflicts
+    DB-->>Portal: Eligible available resources
+    Owner->>Portal: Assign vehicle and driver
+    Portal->>DB: Save assignment and audit event
+    Portal-->>Trip: Create expiring customer access token
+    Owner-->>Customer: Share trip link/WhatsApp confirmation
+    Customer->>Trip: View minimum approved trip details
+```
+
+### Customer-facing trip information
+
+After assignment, show only what helps the passenger identify the trip:
+
+- Booking reference and trip date/time.
+- Pickup summary and destination.
+- Vehicle make/model, colour, and registration number or masked form according to owner policy.
+- Driver display name and approved profile photograph.
+- Trip contact number or masked/call-relay option if available.
+- `Call driver` and `Contact office` actions near pickup time.
+- Safety/help instructions and a clear note that assignments can change.
+
+Use a random, high-entropy, expiring trip-view token—not a sequential booking ID or phone number. Allow the owner to revoke/regenerate the link. Hide details after completion plus a defined grace period. Log link creation and revocation; avoid invasive customer tracking.
+
+### Reassignment
+
+If a driver or vehicle changes, retain assignment history, record the reason, notify the customer through an approved channel, invalidate obsolete trip details where necessary, and never silently overwrite the audit trail.
+
+### Suggested schema additions
+
+| Entity | Core fields |
+|---|---|
+| `drivers` | id, internal_code, legal_name, display_name, phone, public_bio, photo_media_id, languages, active_status, verification fields, timestamps |
+| `driver_documents` | id, driver_id, type, protected_storage_key, expiry_date, verification state, reviewed_by/at |
+| `availability_blocks` | id, resource_type, resource_id, start_at, end_at, status/reason, created_by |
+| `bookings` | expand with reference, status, pickup/destination, start/end, passengers, customer consent, timestamps |
+| `booking_assignments` | id, booking_id, vehicle_id, driver_id, start/end, status, assigned_by/at, ended_at |
+| `trip_access_tokens` | id, booking_id, token_hash, expires_at, revoked_at, created_by |
+| `notification_events` | id, booking_id, channel, template, destination reference, status, sent_at |
+
+Do not store raw trip access tokens; store their cryptographic hash and show/send the original only when created.
+
+### Driver/availability acceptance tests
+
+- Public APIs never return private driver fields or document URLs.
+- Owner can add/edit/suspend/archive drivers and see expiring-document alerts.
+- Owner can block availability for vehicles and drivers.
+- System prevents overlapping active assignments.
+- Customer trip links are unguessable, expire, can be revoked, and expose only approved fields.
+- Reassignment preserves history and creates audit events.
+- No customer can access another booking by changing an ID in the URL.
+
+---
+
+## 24. Owner dashboard improvements from the current build
+
+Add these dashboard areas after authentication is repaired:
+
+1. **Today:** pickups, drop-offs, unassigned confirmed trips, and time conflicts.
+2. **Enquiries:** new, contacted, quoted, confirmed, closed, and spam.
+3. **Availability board:** vehicles as rows, dates/time as columns, assignments and maintenance blocks.
+4. **Drivers:** available, assigned, on leave, inactive, and documents expiring soon.
+5. **Content:** drafts, hidden items, missing images, prices needing review, and untranslated changes.
+6. **Activity:** recent logins, failed login warnings, publishes, deletes, assignments, and exports.
+7. **Quick actions:** new booking, block vehicle, add driver, add vehicle, update price, and publish notice.
+
+Avoid placing sensitive customer or driver details on the first screen when the owner portal opens in a public place. Provide a privacy screen option that masks phone numbers until tapped.
+
+---
+
+## 25. Revised implementation backlog
+
+| Priority | Work item | Completion signal |
+|---|---|---|
+| P0 | Rotate and remove committed database credential | Old credential rejected; repository/history scan clean |
+| P0 | Replace frontend PIN with server-side authentication/session | Direct API mutations and booking reads return 401/403 without owner session |
+| P0 | Remove admin PIN/link disclosures and query bypass | No PIN/admin instructions in public DOM or client source |
+| P0 | Protect API errors, CORS, validation, rate limits | Security tests pass and sensitive errors are not returned |
+| P1 | Add theme tokens and Light/Dark/System control | Theme acceptance tests pass on public and owner views |
+| P1 | Replace base64 uploads with managed media storage | Optimized upload/replace/remove works across devices |
+| P1 | Add proper bookings workflow/statuses | Owner can move enquiry through confirmed/completed lifecycle |
+| P1 | Add drivers and separate availability | Private driver CRUD and conflict-safe assignment work |
+| P1 | Add secure customer trip view | Expiring/revocable link exposes minimum approved details |
+| P2 | Add owner dashboard, audit UI, session management | Owner can inspect operations and revoke sessions |
+| P2 | Verify/replace claims, testimonials, prices, photos | Owner-approved content register has no placeholders |
+| P2 | Accessibility, responsive and performance QA | Agreed automated/manual checks pass |
+
+### Updated definition of “ready”
+
+The site is not production-ready merely because Vercel reports `READY` or Neon responds. It is ready when secrets are rotated, private routes are actually authorized, customer/driver data is protected, public claims are verified, theme and core workflows pass their acceptance tests, and the owner completes a staging walkthrough on both phone and desktop.

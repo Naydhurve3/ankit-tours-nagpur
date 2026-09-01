@@ -1,7 +1,7 @@
 let data = {fleet:[], packages:[], gallery:[], testimonials:[]};
 let currentTab = "fleet";
-const PIN = "7276";
 let useApi = false;
+let authenticated = false;
 
 async function checkApi(){
   try{
@@ -21,14 +21,26 @@ async function loadFromApi(){
     return {fleet, packages, gallery, testimonials};
   }catch(e){ return null;}
 }
+async function checkSession(){
+  try{
+    const r = await fetch('/api/owner/session');
+    const j = await r.json();
+    return !!j.authenticated;
+  }catch{ return false; }
+}
 
 document.addEventListener("DOMContentLoaded", async ()=>{
   await checkApi();
+  // theme toggle for admin
+  document.getElementById('adminThemeToggle')?.addEventListener('click', ()=> window.Theme?.toggle());
   if(useApi){
-    const apiData = await loadFromApi();
-    if(apiData) data = apiData;
-    document.getElementById('saveBtn').textContent='↻ Reload';
-    document.getElementById('saveBtn').onclick = async ()=>{ const d=await loadFromApi(); if(d) data=d; render(); toast('Reloaded from Neon'); };
+    // check if already authenticated
+    authenticated = await checkSession();
+    if(authenticated){
+      const apiData = await loadFromApi();
+      if(apiData) data = apiData;
+      showDashboard();
+    }
   } else {
     const seed = await fetchSeed();
     const local = loadLocal();
@@ -37,21 +49,37 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   }
 
   const gate = document.getElementById("gate");
-  const dash = document.getElementById("dashboard");
   const pinInput = document.getElementById("pinInput");
-  document.getElementById("pinBtn").addEventListener("click", checkPin);
-  pinInput.addEventListener("keydown", e=>{ if(e.key==="Enter") checkPin(); });
-  function checkPin(){
-    if(pinInput.value.trim()===PIN){
-      gate.classList.add("hidden");
-      dash.classList.remove("hidden");
-      render();
+  document.getElementById("pinBtn").addEventListener("click", handleLogin);
+  pinInput.addEventListener("keydown", e=>{ if(e.key==="Enter") handleLogin(); });
+
+  async function handleLogin(){
+    const pin = pinInput.value.trim();
+    if(!pin){ document.getElementById("pinMsg").textContent="Enter PIN"; return; }
+    if(useApi){
+      try{
+        const res = await fetch('/api/owner/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pin})});
+        const j = await res.json();
+        if(!res.ok) throw new Error(j.error||'Login failed');
+        authenticated = true;
+        const apiData = await loadFromApi();
+        if(apiData) data = apiData;
+        showDashboard();
+        toast('Authenticated');
+      }catch(e){
+        document.getElementById("pinMsg").textContent = e.message || 'Invalid PIN';
+      }
     } else {
-      document.getElementById("pinMsg").textContent = "Wrong PIN. Hint: last 4 digits of 7276066532";
+      // local fallback - requires env PIN not available, so deny
+      document.getElementById("pinMsg").textContent = "Server not reachable - cannot verify PIN";
     }
   }
-  const qp = new URLSearchParams(location.search);
-  if(qp.get("pin")===PIN){ pinInput.value=PIN; checkPin(); }
+
+  function showDashboard(){
+    document.getElementById("gate").classList.add("hidden");
+    document.getElementById("dashboard").classList.remove("hidden");
+    render();
+  }
 
   document.querySelectorAll(".tab").forEach(t=> t.addEventListener("click", ()=>{
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
@@ -60,21 +88,25 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     render();
   }));
 
-  // original saveBtn was repurposed if useApi
+  // logout
+  document.getElementById('logoutBtn')?.addEventListener('click', async ()=>{
+    try{ await fetch('/api/owner/logout',{method:'POST'}); }catch{}
+    location.reload();
+  });
+
   if(!useApi){
     document.getElementById("saveBtn").addEventListener("click", ()=>{
       saveLocal(data);
-      toast("Saved locally. Public site will show updated data on refresh.");
+      toast("Saved locally.");
     });
+  } else {
+    document.getElementById('saveBtn').textContent='↻ Reload';
+    document.getElementById('saveBtn').onclick = async ()=>{ const d=await loadFromApi(); if(d) data=d; render(); toast('Reloaded from Neon'); };
   }
   document.getElementById("exportBtn").addEventListener("click", ()=> downloadJSON(data));
   document.getElementById("resetBtn").addEventListener("click", async ()=>{
-    if(!confirm("Reset? Will clear DB or local.")) return;
-    if(useApi){
-      // clear via API - delete all then reseed from json would be manual, just toast
-      toast('For Neon, delete items individually or reseed via /scripts/init-db.js');
-      return;
-    }
+    if(!confirm("Reset?")) return;
+    if(useApi){ toast('Delete items individually in Neon mode'); return; }
     const fresh = await fetchSeed();
     data = structuredClone(fresh);
     saveLocal(data);
@@ -97,6 +129,8 @@ function render(){
   if(currentTab==="packages") panel.innerHTML = renderPackagesAdmin();
   if(currentTab==="gallery") panel.innerHTML = renderGalleryAdmin();
   if(currentTab==="testimonials") panel.innerHTML = renderTestimonialsAdmin();
+  if(currentTab==="drivers") panel.innerHTML = renderDriversAdmin();
+  if(currentTab==="bookings") panel.innerHTML = renderBookingsAdmin();
   bindAdminEvents();
 }
 
@@ -110,20 +144,18 @@ function renderFleetAdmin(){
       <input id="f_features" class="field" placeholder="Features e.g. AC • Music">
     </div>
     <div class="toolbar">
-      <input id="f_image" class="field" placeholder="Image URL (or use upload)" style="flex:2">
-      <input type="file" id="f_file" accept="image/*" class="field" style="flex:1">
+      <input id="f_image" class="field" placeholder="https:// image URL only (no base64)" style="flex:2">
     </div>
-    <div id="f_preview" class="preview">Preview will appear here</div>
     <div style="margin-top:10px;display:flex;gap:8px">
       <button class="btn-sm primary" onclick="addFleet()">+ Add Vehicle</button>
-      <span class="hint">Eye = hide/show on public. Green = Visible. Neon mode saves instantly - no Save needed.</span>
+      <span class="hint">Use https URL. Eye = hide/show on public.</span>
     </div>
     <div class="list" style="margin-top:14px">${data.fleet.map((f,i)=>`
       <div class="item ${f.visible===false?'off':''}">
         <img src="${f.image}" onerror="this.style.background='#e2e8f0'">
         <div>
-          <b>${f.name}</b> <span class="badge ${f.visible!==false?'on':''}">${f.visible!==false?'Visible':'Hidden'}</span><br>
-          <span class="small muted">${f.seating} • ${f.price} • ${f.features||''}</span>
+          <b>${escapeHtml(f.name)}</b> <span class="badge ${f.visible!==false?'on':''}">${f.visible!==false?'Visible':'Hidden'}</span><br>
+          <span class="small muted">${escapeHtml(f.seating)} • ${escapeHtml(f.price)} • ${escapeHtml(f.features||'')}</span>
         </div>
         <div class="item-actions">
           <button class="icon-btn" title="Hide/Show" onclick="toggleFleet(${i}, ${f.id})">${f.visible!==false?'👁️':'🚫'}</button>
@@ -145,7 +177,7 @@ function renderPackagesAdmin(){
     </div>
     <div class="list">${data.packages.map((p,i)=>`
       <div class="item ${p.visible===false?'off':''}" style="grid-template-columns:1fr auto">
-        <div><b>${p.service}</b> • <span class="tag">${p.vehicle}</span> • <b style="color:#0f4c81">${p.price}</b><br><span class="small muted">${p.note||''}</span> <span class="badge ${p.visible!==false?'on':''}">${p.visible!==false?'Visible':'Hidden'}</span></div>
+        <div><b>${escapeHtml(p.service)}</b> • <span class="tag">${escapeHtml(p.vehicle)}</span> • <b style="color:var(--primary)">${escapeHtml(p.price)}</b><br><span class="small muted">${escapeHtml(p.note||'')}</span> <span class="badge ${p.visible!==false?'on':''}">${p.visible!==false?'Visible':'Hidden'}</span></div>
         <div class="item-actions">
           <button class="icon-btn" onclick="togglePkg(${i}, ${p.id})">${p.visible!==false?'👁️':'🚫'}</button>
           <button class="icon-btn danger" onclick="delPkg(${i}, ${p.id})">✕</button>
@@ -160,15 +192,13 @@ function renderGalleryAdmin(){
     <div class="toolbar">
       <input id="g_title" class="field" placeholder="Title e.g. Tadoba Jungle">
       <select id="g_cat" class="field"><option value="fleet">fleet</option><option value="safari">safari</option><option value="pilgrimage">pilgrimage</option></select>
-      <input id="g_src" class="field" placeholder="Image URL" style="flex:2">
-      <input type="file" id="g_file" accept="image/*" class="field">
+      <input id="g_src" class="field" placeholder="https:// image URL" style="flex:2">
       <button class="btn-sm primary" onclick="addGallery()">+ Add Image</button>
     </div>
-    <div id="g_preview" class="preview">Preview</div>
     <div class="list" style="margin-top:14px">${data.gallery.map((g,i)=>`
       <div class="item ${g.visible===false?'off':''}">
         <img src="${g.src}">
-        <div><b>${g.title||g.category}</b> <span class="badge">${g.category}</span> <span class="badge ${g.visible!==false?'on':''}">${g.visible!==false?'Visible':'Hidden'}</span></div>
+        <div><b>${escapeHtml(g.title||g.category)}</b> <span class="badge">${escapeHtml(g.category)}</span> <span class="badge ${g.visible!==false?'on':''}">${g.visible!==false?'Visible':'Hidden'}</span></div>
         <div class="item-actions">
           <button class="icon-btn" onclick="toggleGal(${i}, ${g.id})">${g.visible!==false?'👁️':'🚫'}</button>
           <button class="icon-btn danger" onclick="delGal(${i}, ${g.id})">✕</button>
@@ -188,39 +218,18 @@ function renderTestimonialsAdmin(){
     <div class="toolbar"><textarea id="t_text" class="field" placeholder="Review text" style="min-height:70px;flex:1"></textarea><button class="btn-sm primary" onclick="addTesti()">+ Add</button></div>
     <div class="list">${data.testimonials.map((t,i)=>`
       <div class="item ${t.visible===false?'off':''}" style="grid-template-columns:1fr auto">
-        <div><b>${t.name}</b> • ${'★'.repeat(t.rating)} <span class="badge ${t.visible!==false?'on':''}">${t.visible!==false?'Visible':'Hidden'}</span><br><span class="small muted">${t.place||''}</span><br><span class="small">${t.text}</span></div>
+        <div><b>${escapeHtml(t.name)}</b> • ${'★'.repeat(t.rating)} <span class="badge ${t.visible!==false?'on':''}">${t.visible!==false?'Visible':'Hidden'}</span><br><span class="small muted">${escapeHtml(t.place||'')}</span><br><span class="small">${escapeHtml(t.text)}</span></div>
         <div class="item-actions"><button class="icon-btn" onclick="toggleTesti(${i}, ${t.id})">${t.visible!==false?'👁️':'🚫'}</button><button class="icon-btn danger" onclick="delTesti(${i}, ${t.id})">✕</button></div>
       </div>
     `).join("")}</div>
   `;
 }
+function renderDriversAdmin(){ return `<h3>Drivers</h3><p class="small muted">Driver management requires Neon migration - see backlog 23. Coming after auth stabilisation.</p>`; }
+function renderBookingsAdmin(){ return `<h3>Bookings</h3><p class="small muted">Bookings list is now protected. Fetch via authenticated GET /api/bookings.</p>`; }
 
-function bindAdminEvents(){
-  const fFile = document.getElementById("f_file");
-  if(fFile) fFile.addEventListener("change", e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=> {
-      const url = reader.result;
-      document.getElementById("f_image").value = url;
-      const p = document.getElementById("f_preview");
-      p.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover">`;
-    };
-    reader.readAsDataURL(file);
-  });
-  const gFile = document.getElementById("g_file");
-  if(gFile) gFile.addEventListener("change", e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const r = new FileReader();
-    r.onload=()=> {
-      document.getElementById("g_src").value=r.result;
-      document.getElementById("g_preview").innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;
-    };
-    r.readAsDataURL(file);
-  });
-}
+function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+function bindAdminEvents(){ /* base64 removed per spec */ }
 
 // Actions - API aware
 async function addFleet(){
@@ -230,9 +239,10 @@ async function addFleet(){
   const features=document.getElementById("f_features").value.trim();
   const image=document.getElementById("f_image").value.trim() || "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=600";
   if(!name){ toast("Enter vehicle name"); return; }
+  if(image.startsWith('data:')){ toast('Base64 not allowed - use https URL'); return; }
   if(useApi){
     const res = await fetch('/api/fleet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,seating,price,features,image,visible:true})});
-    if(res.ok){ const row=await res.json(); data.fleet.unshift(row); render(); toast('Added to Neon DB'); } else toast('API failed');
+    if(res.ok){ const row=await res.json(); data.fleet.unshift(row); render(); toast('Added to Neon DB'); } else { const j=await res.json(); toast(j.error||'API failed'); }
   } else {
     data.fleet.unshift({id:"f"+Date.now(), name, seating, price, features, image, visible:true});
     saveLocal(data); render(); toast("Vehicle added.");
@@ -241,15 +251,14 @@ async function addFleet(){
 async function toggleFleet(i, id){ 
   if(useApi && id){
     const cur=data.fleet[i]; const res=await fetch('/api/fleet',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cur, visible:!cur.visible})});
-    if(res.ok){ data.fleet[i]=await res.json(); render(); toast(cur.visible?'Hidden':'Visible'); }
+    if(res.ok){ data.fleet[i]=await res.json(); render(); toast(cur.visible?'Hidden':'Visible'); } else toast('Failed');
   } else { data.fleet[i].visible = data.fleet[i].visible===false ? true : false; saveLocal(data); render(); }
 }
 async function delFleet(i, id){ 
   if(!confirm("Delete?")) return;
-  if(useApi && id){ await fetch('/api/fleet?id='+id,{method:'DELETE'}); }
+  if(useApi && id){ const r=await fetch('/api/fleet?id='+id,{method:'DELETE'}); if(!r.ok) toast('Delete failed'); }
   data.fleet.splice(i,1); if(!useApi) saveLocal(data); render(); 
 }
-
 async function addPkg(){
   const service=document.getElementById("p_service").value.trim();
   const vehicle=document.getElementById("p_vehicle").value.trim()||"All";
@@ -258,7 +267,7 @@ async function addPkg(){
   if(!service){ toast("Enter service"); return;}
   if(useApi){
     const res=await fetch('/api/packages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({service,vehicle,price,note,visible:true})});
-    if(res.ok){ data.packages.unshift(await res.json()); render(); toast('Added');}
+    if(res.ok){ data.packages.unshift(await res.json()); render(); toast('Added');} else toast('Failed');
   } else { data.packages.unshift({id:"p"+Date.now(), service, vehicle, price, note, visible:true}); saveLocal(data); render(); }
 }
 async function togglePkg(i, id){ 
@@ -266,20 +275,19 @@ async function togglePkg(i, id){
   } else { data.packages[i].visible = data.packages[i].visible===false?true:false; saveLocal(data); render(); }
 }
 async function delPkg(i, id){ if(useApi&&id) await fetch('/api/packages?id='+id,{method:'DELETE'}); data.packages.splice(i,1); if(!useApi) saveLocal(data); render(); }
-
 async function addGallery(){
   const title=document.getElementById("g_title").value.trim()||"Untitled";
   const category=document.getElementById("g_cat").value;
   const src=document.getElementById("g_src").value.trim();
-  if(!src){ toast("Add image URL or upload"); return;}
+  if(!src){ toast("Add image URL"); return;}
+  if(src.startsWith('data:')){ toast('Base64 not allowed'); return; }
   if(useApi){
     const res=await fetch('/api/gallery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({src,category,title,visible:true})});
-    if(res.ok){ data.gallery.unshift(await res.json()); render(); toast('Added');}
+    if(res.ok){ data.gallery.unshift(await res.json()); render(); toast('Added');} else toast('Failed');
   } else { data.gallery.unshift({id:"g"+Date.now(), src, category, title, visible:true}); saveLocal(data); render(); }
 }
 async function toggleGal(i, id){ if(useApi&&id){ const cur=data.gallery[i]; const r=await fetch('/api/gallery',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cur, visible:!cur.visible})}); if(r.ok) data.gallery[i]=await r.json(); render(); } else { data.gallery[i].visible = data.gallery[i].visible===false?true:false; saveLocal(data); render(); } }
 async function delGal(i, id){ if(useApi&&id) await fetch('/api/gallery?id='+id,{method:'DELETE'}); data.gallery.splice(i,1); if(!useApi) saveLocal(data); render(); }
-
 async function addTesti(){
   const name=document.getElementById("t_name").value.trim();
   const place=document.getElementById("t_place").value.trim();
@@ -288,7 +296,7 @@ async function addTesti(){
   if(!name||!text){ toast("Name and text required"); return;}
   if(useApi){
     const res=await fetch('/api/testimonials',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,place,text,rating,visible:true})});
-    if(res.ok){ data.testimonials.unshift(await res.json()); render(); toast('Added');}
+    if(res.ok){ data.testimonials.unshift(await res.json()); render(); toast('Added');} else toast('Failed');
   } else { data.testimonials.unshift({id:"t"+Date.now(), name, place, rating, text, visible:true}); saveLocal(data); render(); }
 }
 async function toggleTesti(i, id){ if(useApi&&id){ const cur=data.testimonials[i]; const r=await fetch('/api/testimonials',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cur, visible:!cur.visible})}); if(r.ok) data.testimonials[i]=await r.json(); render(); } else { data.testimonials[i].visible = data.testimonials[i].visible===false?true:false; saveLocal(data); render(); } }
