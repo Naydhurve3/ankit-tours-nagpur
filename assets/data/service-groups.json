@@ -1,0 +1,56 @@
+[
+  {
+    "id": "travel",
+    "title": "Travel & Vehicle",
+    "icon": "🚗",
+    "desc": "Ankit Tours, Safari, Tickets & Vehicle assistance",
+    "color": "#2d746f",
+    "replicaIds": ["tickets", "bus", "business"],
+    "includeTour": true
+  },
+  {
+    "id": "banking",
+    "title": "Banking & Finance",
+    "icon": "🏦",
+    "desc": "BC Services, AEPS, Bachat Gat & Business finance",
+    "color": "#0f4c81",
+    "replicaIds": ["banking", "bachat"],
+    "includeTour": false
+  },
+  {
+    "id": "identity",
+    "title": "Aadhaar, PAN & Government",
+    "icon": "🪪",
+    "desc": "Identity, PAN & Government certificates",
+    "color": "#6b3fa0",
+    "replicaIds": ["aadhaar", "pan", "government"],
+    "includeTour": false
+  },
+  {
+    "id": "farmer",
+    "title": "Farmer Services",
+    "icon": "🌾",
+    "desc": "PM-KISAN, KCC, 7/12 & Krishi schemes",
+    "color": "#2e7d32",
+    "replicaIds": ["farmer"],
+    "includeTour": false
+  },
+  {
+    "id": "bills",
+    "title": "Bills & Recharge",
+    "icon": "💡",
+    "desc": "Electricity, Water, Gas, Mobile, DTH, FASTag",
+    "color": "#d96c2c",
+    "replicaIds": ["bills"],
+    "includeTour": false
+  },
+  {
+    "id": "printing",
+    "title": "Xerox, Print & Education",
+    "icon": "🖨️",
+    "desc": "Printing, Scanning, Lamination & Education",
+    "color": "#5d4037",
+    "replicaIds": ["printing", "education"],
+    "includeTour": false
+  }
+]

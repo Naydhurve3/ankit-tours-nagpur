@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Services — Replica Click & Ankit Tours | Kondhali Nagpur</title>
+<meta name="description" content="Explore all service groups: Travel, Banking, Identity, Farmer, Bills, Print & Education — Replica Click & Ankit Tours, Kondhali.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F7F1E7">
+<script>(function(){try{var k='att_theme',v=localStorage.getItem(k);var s=v==='light'||v==='dark'?v:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="header">
+  <nav class="nav">
+    <a href="/" class="logo"><span class="logo-icon">★</span> <span><b>Replica Click</b> <small style="font-weight:600;opacity:.7">• Ankit Tours</small></span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/services/index.html" class="active">All Services</a>
+      <a href="/#contact">Contact</a>
+      <div class="mobile-nav-tools">
+        <a class="mobile-call" href="tel:+917276066532">☎ Call 7276066532</a>
+        <a class="btn btn-primary" href="https://wa.me/917276066532" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button id="themeToggle" class="theme-btn" aria-label="Switch theme">🌙</button>
+      <a class="pill-call" href="tel:+917276066532">☎ 7276066532</a>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+</header>
+<main id="mainContent">
+<section class="replica-hero" style="padding:32px 20px">
+  <div class="replica-hero-inner" style="grid-template-columns:1fr">
+    <div class="replica-hero-card">
+      <span class="kicker">6 Groups • Dedicated Pages</span>
+      <h1>All Service Groups</h1>
+      <p class="replica-desc">Pick a group — you'll land on a dedicated page where only that group's services are visible. Use Back to return home. Each page is shareable.</p>
+      <div style="margin-top:14px"><a class="btn replica-primary" href="/">← Back to Home</a></div>
+    </div>
+  </div>
+</section>
+<section class="replica-catalog-section">
+  <div class="service-groups" id="serviceGroups"></div>
+  <p class="small muted" style="text-align:center;margin-top:12px">Each group also has a direct link: <code>/services/&lt;id&gt;.html</code> — e.g. <a href="banking.html">banking.html</a>, <a href="travel.html">travel.html</a></p>
+</section>
+</main>
+<footer style="background:linear-gradient(180deg,#173f4f,#0b2732);color:rgba(255,255,255,.92);padding:24px;text-align:center"><div class="small">© 2026 Replica Click & Ankit Tours • <a href="/" style="color:#71d8ff">Home</a></div></footer>
+<div class="mobile-action-dock" aria-label="Quick actions"><a href="tel:+917276066532"><span>☎</span> Call</a><a href="https://wa.me/917276066532" target="_blank"><span>◉</span> WhatsApp</a></div>
+<script src="/js/theme.js"></script>
+<script>
+(function(){
+  // lightweight group list for services index (no replica filter needed)
+  fetch('/assets/data/service-groups.json').then(r=>r.json()).then(groups=>{
+    const wrap=document.getElementById('serviceGroups');
+    wrap.innerHTML=groups.map(g=>`<a class="group-card" href="${g.id}.html" style="text-decoration:none"><div class="group-icon">${g.icon}</div><div class="group-title">${g.title}</div><div class="group-desc">${g.desc}</div><small>Open page →</small><span class="group-count">→</span></a>`).join('') + `<a class="group-card" href="/" style="border-style:dashed"><div class="group-icon">✦</div><div class="group-title">Home</div><div class="group-desc">View all together</div></a>`;
+  });
+  document.getElementById('hamburger')?.addEventListener('click',()=>{
+    const nl=document.getElementById('navLinks'); const open=!nl.classList.contains('open'); nl.classList.toggle('open',open);
+  });
+})();
+</script>
+</body>
+</html>

@@ -190,12 +190,23 @@
   </div>
 </section>
 
-<section class="replica-catalog-section reveal">
+<section class="replica-catalog-section reveal" id="replicaServices">
   <div class="section-head">
-    <span class="kicker">13 Categories • Blue • White • Light Wood</span>
+    <span class="kicker">Choose by Need • 6 Groups</span>
     <h2>Services — एकाच ठिकाणी सर्व ऑनलाइन सेवा</h2>
-    <p>Tap a category to expand — only one stays open. Each card has WhatsApp enquiry with automatic service name.</p>
+    <p>Pick a group — only that group's services stay visible. Others hide until you go back. Also available as dedicated pages.</p>
   </div>
+
+  <!-- Group chooser: the new primary navigation -->
+  <div class="service-groups" id="serviceGroups" aria-label="Service groups"></div>
+
+  <!-- Active filter bar (hidden until a group is selected) -->
+  <div class="active-filter-bar hidden" id="activeFilterBar" aria-live="polite">
+    <button class="back-home-btn" id="backToAll" type="button">← Back to all services</button>
+    <span class="active-filter-label" id="activeFilterLabel"></span>
+    <a class="view-page-link" id="viewPageLink" href="#">Open as page →</a>
+  </div>
+
   <div class="popular-strip" id="popularStrip" aria-label="Popular services">
     <span class="popular-label">Popular:</span>
     <button data-popular="Aadhaar Download">Aadhaar</button>
@@ -205,12 +216,16 @@
     <button data-popular="Xerox">Xerox</button>
     <button data-popular="Train Ticket">Ticket</button>
   </div>
-  <div class="replica-catalog">
+
+  <div class="replica-catalog" id="replicaCatalogWrap">
       <div class="catalog-head"><div><span class="kicker">Service desk</span><h3>Choose what you need</h3></div><label class="service-search">⌕<input id="onlineServiceSearch" type="search" placeholder="Search Aadhaar, printing, bill…" aria-label="Search online services"></label></div>
       <div class="online-service-grid" id="onlineServiceGrid" aria-live="polite"></div>
       <p class="service-safety">Privacy first: do not send Aadhaar numbers, banking PINs, OTPs, passwords or identity documents through this website or WhatsApp. Bring required documents directly to the center after confirming what is needed.</p>
   </div>
 </section>
+
+<!-- Tour services are now also filterable via the same group system -->
+<div class="grouped-content" id="groupedContent"></div>
 
 <section class="section replica-about reveal" id="aboutReplica">
   <div class="about-grid">

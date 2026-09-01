@@ -96,17 +96,28 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   renderGallery(data.gallery);
   renderTestimonials(data.testimonials);
 
-  // Replica Click: searchable catalogue with a privacy-conscious WhatsApp enquiry.
+  // Replica Click: grouped catalogue + dedicated group pages
   const replicaServices = await loadReplicaServices();
+  const serviceGroups = await loadServiceGroups();
+  renderServiceGroups(serviceGroups, replicaServices);
   renderReplicaServices(replicaServices);
   setupOnlineServiceDialog(replicaServices, setMenu);
+  // initial group from URL ?group= or /services/<id>.html path
+  const initialGroup = getInitialGroup();
+  if(initialGroup) applyGroup(initialGroup, serviceGroups, replicaServices, false);
   document.querySelectorAll('[data-popular]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const val=btn.getAttribute('data-popular')||'';
       const search=document.getElementById('onlineServiceSearch');
-      if(search){ search.value=val; search.dispatchEvent(new Event('input',{bubbles:true})); document.getElementById('replicaCenter')?.scrollIntoView({behavior:'smooth', block:'start'}); }
+      if(search){ search.value=val; search.dispatchEvent(new Event('input',{bubbles:true})); document.getElementById('replicaServices')?.scrollIntoView({behavior:'smooth', block:'start'}); }
       else document.dispatchEvent(new CustomEvent('replica:enquire',{detail:{service:val}}));
     });
+  });
+  document.getElementById('backToAll')?.addEventListener('click', ()=> clearGroup(serviceGroups, replicaServices));
+  window.addEventListener('popstate', ()=>{
+    const g = new URLSearchParams(location.search).get('group');
+    if(g) applyGroup(g, serviceGroups, replicaServices, false);
+    else clearGroup(serviceGroups, replicaServices, false);
   });
 
   // Expandable service cards save space while remaining touch and keyboard friendly.
@@ -261,16 +272,21 @@ function renderTestimonials(tests){
   `).join("");
 }
 
-async function loadReplicaServices(){
-  try{
-    const response = await fetch('assets/data/replica-services.json');
-    if(!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    return Array.isArray(data) ? data : [];
-  }catch(error){
-    console.warn('Replica Click services could not be loaded', error);
-    return [];
+async function fetchJsonWithFallback(paths){
+  for(const p of paths){
+    try{
+      const r=await fetch(p);
+      if(r.ok) return await r.json();
+    }catch{}
   }
+  return null;
+}
+async function loadReplicaServices(){
+  const data = await fetchJsonWithFallback(['/assets/data/replica-services.json','assets/data/replica-services.json','../assets/data/replica-services.json']);
+  if(Array.isArray(data)) return data;
+  if(data) return Array.isArray(data)?data:[];
+  console.warn('Replica Click services could not be loaded');
+  return [];
 }
 
 function renderReplicaServices(services){
@@ -371,6 +387,167 @@ function setupOnlineServiceDialog(services,setMenu){
     showToast('Request received — opening WhatsApp. Owner will confirm documents and charges.');
     window.open(`https://wa.me/917276066532?text=${text}`,'_blank','noopener');
   });
+}
+
+async function loadServiceGroups(){
+  const j=await fetchJsonWithFallback(['/assets/data/service-groups.json','assets/data/service-groups.json','../assets/data/service-groups.json']);
+  return Array.isArray(j)?j:[];
+}
+function renderServiceGroups(groups, replicaServices){
+  const wrap=document.getElementById('serviceGroups');
+  if(!wrap) return;
+  // compute counts
+  wrap.innerHTML = groups.map(g=>{
+    const count = g.replicaIds ? replicaServices.filter(s=> g.replicaIds.includes(s.id)).length : 0;
+    const tourCount = g.includeTour ? 6 : 0; // 6 tour cards
+    const total = count + tourCount;
+    return `<button class="group-card" type="button" data-group="${esc(g.id)}" data-page="services/${esc(g.id)}.html" aria-label="View ${esc(g.title)}">
+      <div class="group-icon" style="background: color-mix(in srgb, ${esc(g.color)} 14%, var(--surface-elevated)); border-color: color-mix(in srgb, ${esc(g.color)} 22%, var(--border))">${esc(g.icon)}</div>
+      <div class="group-title">${esc(g.title)}</div>
+      <div class="group-desc">${esc(g.desc)}</div>
+      <small>${total} services • <span style="color:${esc(g.color)}">View →</span></small>
+      <span class="group-count">${total}</span>
+    </button>`;
+  }).join('') + `<button class="group-card" type="button" data-group="all" style="border-style:dashed"><div class="group-icon">✦</div><div class="group-title">All Services</div><div class="group-desc">Show everything together</div><small>Back to home view</small></button>`;
+  wrap.querySelectorAll('.group-card').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const g=btn.getAttribute('data-group');
+      if(g==='all') clearGroup(groups, replicaServices);
+      else applyGroup(g, groups, replicaServices, true);
+      // if shift+click or middle click for page, also allow page navigation on separate link – but we use filter in place; page link is via view-page-link
+    });
+  });
+  // also make groups navigable via keyboard
+}
+function getInitialGroup(){
+  const urlGroup=new URLSearchParams(location.search).get('group');
+  if(urlGroup) return urlGroup;
+  // check path /services/<id>.html
+  const m=location.pathname.match(/\/services\/([^\/\.]+)\.html/i);
+  if(m) return m[1];
+  return null;
+}
+let _activeGroup=null;
+function applyGroup(groupId, groups, replicaServices, push=true){
+  const group = groups.find(g=>g.id===groupId);
+  if(!group && groupId!=='all') return;
+  _activeGroup=groupId;
+  // update group cards active state
+  document.querySelectorAll('.group-card').forEach(c=>{
+    const isActive=c.getAttribute('data-group')===groupId;
+    c.classList.toggle('active', isActive);
+    c.setAttribute('aria-pressed', String(isActive));
+  });
+  // filter replica grid
+  const allowed = group ? new Set(group.replicaIds||[]) : null;
+  // re-render replica with filtered
+  const filteredReplica = group ? replicaServices.filter(s=> allowed.has(s.id)) : replicaServices;
+  // temporarily override draw: we re-render grid only with filtered
+  // Use existing grid but re-draw with filtered set
+  const grid=document.getElementById('onlineServiceGrid');
+  if(grid){
+    // call internal draw via reusing render function: we dispatch filtered list
+    // easiest: re-call render logic inline
+    const searchVal=document.getElementById('onlineServiceSearch')?.value||'';
+    // rebuild filtered with search
+    const needle=searchVal.trim().toLowerCase();
+    const finalFiltered= filteredReplica.filter(s=>{
+      const hay=[s.title,...(s.items||[])].join(' ').toLowerCase();
+      return !needle || hay.includes(needle);
+    });
+    if(!finalFiltered.length){
+      grid.innerHTML='<p class="replica-empty">No services in this group. Try another category or <a href="#" onclick="clearGroup(window._groups, window._replicaServices); return false;">go back</a>.</p>';
+    } else {
+      grid.innerHTML=finalFiltered.map((service,index)=>{
+        const panelId=`online-service-panel-${service.id||index}`;
+        return `<article class="online-service-card">
+          <div class="online-service-heading">
+            <span class="online-service-icon" aria-hidden="true">${esc(service.icon||'✓')}</span>
+            <div><span class="online-service-number">${String(index+1).padStart(2,'0')}</span><h3>${esc(service.title)}</h3></div>
+          </div>
+          <button class="online-service-toggle" type="button" aria-expanded="false" aria-controls="${esc(panelId)}">
+            <span class="toggle-label">Expand services</span> <span class="toggle-symbol" aria-hidden="true">＋</span>
+          </button>
+          <div class="online-service-details" id="${esc(panelId)}">
+            <ul>${(service.items||[]).map(item=>`<li>${esc(item)}</li>`).join('')}</ul>
+            <button class="btn btn-primary online-card-enquire" type="button" data-service="${esc(service.title)}">Enquire on WhatsApp</button>
+          </div>
+        </article>`;
+      }).join('');
+      // re-bind toggles
+      grid.querySelectorAll('.online-service-toggle').forEach(button=>button.addEventListener('click',()=>{
+        const card=button.closest('.online-service-card');
+        const expanded=!card.classList.contains('expanded');
+        grid.querySelectorAll('.online-service-card.expanded').forEach(openCard=>{
+          if(openCard===card) return;
+          openCard.classList.remove('expanded');
+          const openButton=openCard.querySelector('.online-service-toggle');
+          openButton?.setAttribute('aria-expanded','false');
+          if(openButton) openButton.querySelector('.toggle-label').textContent='Expand services';
+          if(openButton) openButton.querySelector('.toggle-symbol').textContent='＋';
+        });
+        card.classList.toggle('expanded',expanded);
+        button.setAttribute('aria-expanded',String(expanded));
+        button.querySelector('.toggle-label').textContent=expanded ? 'Minimize services' : 'Expand services';
+        button.querySelector('.toggle-symbol').textContent=expanded ? '−' : '＋';
+      }));
+      grid.querySelectorAll('.online-card-enquire').forEach(button=>button.addEventListener('click',()=>{
+        document.dispatchEvent(new CustomEvent('replica:enquire',{detail:{service:button.dataset.service}}));
+      }));
+    }
+  }
+  // toggle tour sections visibility
+  const tourSections=['services','fleet','packages','routes'];
+  const showTour = group ? !!group.includeTour : true;
+  tourSections.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle('filtered-hidden', !showTour && groupId!==null);
+  });
+  // also hide replica about/why when filtered? keep them visible for context
+  // show active filter bar
+  const bar=document.getElementById('activeFilterBar');
+  const label=document.getElementById('activeFilterLabel');
+  const link=document.getElementById('viewPageLink');
+  if(bar && label){
+    bar.classList.remove('hidden');
+    label.textContent = group ? `${group.icon} ${group.title} — ${filteredReplica.length} categories` : 'All services';
+    if(link && group) link.href=`services/${group.id}.html`;
+    else if(link) link.href='services/index.html';
+  }
+  // also hide group chooser? keep it visible but de-emphasize
+  // push state
+  if(push){
+    const url=new URL(location.href);
+    if(groupId && groupId!=='all') url.searchParams.set('group', groupId);
+    else url.searchParams.delete('group');
+    history.pushState({group:groupId}, '', url.toString());
+    // scroll to services
+    document.getElementById('replicaServices')?.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  // store globally for clear
+  window._groups=groups; window._replicaServices=replicaServices;
+  // update popular strip filter as well
+  document.getElementById('replicaCatalogWrap')?.scrollIntoView({behavior:'smooth'});
+}
+function clearGroup(groups, replicaServices, push=true){
+  // If we're on a dedicated group page (/services/<id>.html), go back to home
+  if(location.pathname.match(/\/services\/(travel|banking|identity|farmer|bills|printing)\.html/i)){
+    location.href='/';
+    return;
+  }
+  _activeGroup=null;
+  document.querySelectorAll('.group-card').forEach(c=>{ c.classList.remove('active'); c.removeAttribute('aria-pressed'); });
+  // restore full replica render
+  renderReplicaServices(replicaServices);
+  document.querySelectorAll('.filtered-hidden').forEach(el=>el.classList.remove('filtered-hidden'));
+  const bar=document.getElementById('activeFilterBar');
+  if(bar) bar.classList.add('hidden');
+  if(push){
+    const url=new URL(location.href);
+    url.searchParams.delete('group');
+    history.pushState({}, '', url.pathname + url.hash);
+    document.getElementById('replicaServices')?.scrollIntoView({behavior:'smooth'});
+  }
 }
 
 function handleHeroForm(e){
