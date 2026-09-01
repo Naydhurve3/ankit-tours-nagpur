@@ -1,0 +1,14 @@
+[
+  {"id":"aadhaar","icon":"🪪","title":"Aadhaar Assistance","items":["Aadhaar download","Aadhaar print","Aadhaar PVC assistance","Related online assistance"]},
+  {"id":"pan","icon":"💳","title":"PAN Card Assistance","items":["New PAN application assistance","PAN correction","PAN reprint","PAN–Aadhaar assistance"]},
+  {"id":"banking","icon":"🏦","title":"Banking & Mini Bank","items":["Bank of India BC services","AEPS assistance","Cash withdrawal / deposit","Money transfer","Statement assistance","Insurance and APY / pension assistance"]},
+  {"id":"farmer","icon":"🌾","title":"Farmer Services","items":["PM-KISAN assistance","KCC assistance","Crop insurance applications","Farmer registration","7/12 and 8A online assistance","Agriculture scheme applications"]},
+  {"id":"government","icon":"🏛️","title":"Government Services","items":["Income certificate assistance","Residence certificate assistance","e-District services","Government scheme applications","Other online applications"]},
+  {"id":"bachat","icon":"👥","title":"Bachat Gat Services","items":["KYC assistance","Bank / CC loan documentation","Group resolution","Bank statement","Loan document assistance"]},
+  {"id":"bus","icon":"🚌","title":"NCMC & ST Bus","items":["NCMC card assistance","ST Bus card services","Concession appointment booking","Related online applications"]},
+  {"id":"bills","icon":"💡","title":"Bills & Recharge","items":["Electricity / water bill","Gas / LPG","Mobile and DTH recharge","FASTag assistance"]},
+  {"id":"printing","icon":"🖨️","title":"Xerox, Print & Photo","items":["B/W and colour Xerox","Colour printing","Scanning and lamination","Passport photo","Photo frame"]},
+  {"id":"education","icon":"🎓","title":"Education Services","items":["Online admission","Exam forms","Scholarship assistance","Education applications"]},
+  {"id":"tickets","icon":"🎫","title":"Tickets & Travel","items":["Train ticket assistance","Bus ticket assistance","Flight ticket assistance","Hotel booking assistance"]},
+  {"id":"business","icon":"💼","title":"Business & Vehicle","items":["Udyam / GST / FSSAI assistance","Shop Act and digital-signature assistance","ITR assistance","Licence / RC / challan assistance","Vehicle insurance and Vahan / Sarathi assistance"]}
+]

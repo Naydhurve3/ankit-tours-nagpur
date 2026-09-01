@@ -2,6 +2,13 @@
 
 Responsive public transportation website and authenticated owner portal for Ankit Tours & Travels, Kondhali/Nagpur.
 
+The public experience now connects two businesses while keeping their actions distinct:
+
+- **Ankit Tours & Travels** — fleet, packages, routes, availability enquiries, and travel bookings.
+- **Replica Click Online Center & Mini Bank** — searchable online, printing, banking, farmer, education, ticketing, and government-service assistance.
+
+Replica Click enquiries accept only contact details and a plain-language work description. They never request Aadhaar numbers, bank credentials, OTPs, PINs, passwords, or document uploads. Its catalogue lives in `assets/data/replica-services.json`; enquiries use the existing bookings API with source `replica-online-service`, then continue on WhatsApp.
+
 ## Current experience
 
 - Public site: `index.html`

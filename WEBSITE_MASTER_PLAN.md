@@ -5,6 +5,31 @@
 **Prepared:** 1 September 2026  
 **Audience:** Owner, designer, developer, and any AI agent continuing the project
 
+## Dual-Business Expansion — Implemented September 2026
+
+The public website now uses a connected-hub design. Travel remains the primary identity, while Replica Click has a visually distinct blue/purple service centre in the same experience. This keeps a vehicle booking separate from an online-service request while retaining the shared Kondhali location, phone number, and owner trust.
+
+```text
+Public website
+├── Ankit Tours & Travels
+│   ├── Fleet / packages / routes / gallery
+│   └── Travel quote → booking record → WhatsApp confirmation
+└── Replica Click Online Center & Mini Bank
+    ├── Searchable service categories
+    ├── Expandable service details
+    └── Safe enquiry → booking record → WhatsApp guidance
+```
+
+Replica Click safety contract:
+
+1. Collect name, mobile, category, and a non-sensitive description only.
+2. Never request or store Aadhaar numbers, account numbers, OTPs, PINs, passwords, or identity documents in this form.
+3. “Request” means an enquiry—not an official application, completed transaction, guaranteed eligibility, or confirmed price.
+4. Do not add “authorized”, government, bank, Aadhaar, or CSC partner claims without current documentary proof.
+5. The owner confirms required documents, fees, eligibility, and completion privately.
+
+The current catalogue is file-managed through `assets/data/replica-services.json`. A future owner-console phase can move it into a database table with draft/visible controls, ordering, audit logs, and explicit publish without changing the public component contract.
+
 ---
 
 ## 1. Purpose

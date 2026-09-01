@@ -50,6 +50,26 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   },{passive:true});
   window.addEventListener("resize", ()=>{ if(window.innerWidth>1100) setMenu(false); syncHeader(); });
 
+  // Mobile quick actions stay available without permanently covering content.
+  const actionDock=document.querySelector('.mobile-action-dock');
+  let dockTimer;
+  const revealDock=()=>{
+    actionDock?.classList.remove('dock-hidden');
+    clearTimeout(dockTimer);
+    if(window.innerWidth<=640) dockTimer=window.setTimeout(()=>actionDock?.classList.add('dock-hidden'),3200);
+  };
+  actionDock?.addEventListener('pointerenter',()=>{ clearTimeout(dockTimer); actionDock.classList.remove('dock-hidden'); });
+  actionDock?.addEventListener('pointerleave',revealDock);
+  actionDock?.addEventListener('focusin',()=>{ clearTimeout(dockTimer); actionDock.classList.remove('dock-hidden'); });
+  actionDock?.addEventListener('click',revealDock);
+  window.addEventListener('scroll',()=>{
+    if(window.innerWidth>640) return;
+    const movingUp=window.scrollY<lastY;
+    if(movingUp || window.scrollY<100) revealDock();
+    else if(window.scrollY>180) actionDock?.classList.add('dock-hidden');
+  },{passive:true});
+  revealDock();
+
   // active nav on scroll
   const sections = document.querySelectorAll("section[id]");
   const navAs = document.querySelectorAll("#navLinks a");
@@ -75,6 +95,19 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   renderPackages(data.packages);
   renderGallery(data.gallery);
   renderTestimonials(data.testimonials);
+
+  // Replica Click: searchable catalogue with a privacy-conscious WhatsApp enquiry.
+  const replicaServices = await loadReplicaServices();
+  renderReplicaServices(replicaServices);
+  setupOnlineServiceDialog(replicaServices, setMenu);
+  document.querySelectorAll('[data-popular]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const val=btn.getAttribute('data-popular')||'';
+      const search=document.getElementById('onlineServiceSearch');
+      if(search){ search.value=val; search.dispatchEvent(new Event('input',{bubbles:true})); document.getElementById('replicaCenter')?.scrollIntoView({behavior:'smooth', block:'start'}); }
+      else document.dispatchEvent(new CustomEvent('replica:enquire',{detail:{service:val}}));
+    });
+  });
 
   // Expandable service cards save space while remaining touch and keyboard friendly.
   document.querySelectorAll(".service-toggle").forEach(btn=>btn.addEventListener("click",()=>{
@@ -135,8 +168,16 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   };
   nudge?.querySelector(".nudge-close")?.addEventListener("click", dismissNudge);
   nudge?.querySelector(".nudge-action")?.addEventListener("click", dismissNudge);
+  let replicaInView=false;
+  const replicaSection=document.getElementById('replicaCenter');
+  if(replicaSection && nudge){
+    new IntersectionObserver(entries=>{
+      replicaInView=entries.some(entry=>entry.isIntersecting);
+      if(replicaInView) nudge.hidden=true;
+    },{threshold:.08}).observe(replicaSection);
+  }
   try{
-    if(!sessionStorage.getItem("att_nudge_seen")) window.setTimeout(()=>{ if(nudge && !quoteDialog?.open) nudge.hidden=false; },12000);
+    if(!sessionStorage.getItem("att_nudge_seen")) window.setTimeout(()=>{ if(nudge && !quoteDialog?.open && !replicaInView) nudge.hidden=false; },12000);
   }catch{}
 });
 
@@ -218,6 +259,118 @@ function renderTestimonials(tests){
       <b>${esc(t.name)}</b><br><span class="small muted">${esc(t.place||'')}</span>
     </div>
   `).join("");
+}
+
+async function loadReplicaServices(){
+  try{
+    const response = await fetch('assets/data/replica-services.json');
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  }catch(error){
+    console.warn('Replica Click services could not be loaded', error);
+    return [];
+  }
+}
+
+function renderReplicaServices(services){
+  const grid=document.getElementById('onlineServiceGrid');
+  const search=document.getElementById('onlineServiceSearch');
+  if(!grid) return;
+
+  const draw=(query='')=>{
+    const needle=query.trim().toLowerCase();
+    const filtered=services.filter(service=>{
+      const haystack=[service.title,...(service.items||[])].join(' ').toLowerCase();
+      return !needle || haystack.includes(needle);
+    });
+    if(!filtered.length){
+      grid.innerHTML='<p class="replica-empty">No matching service found. Ask us on WhatsApp and we will guide you.</p>';
+      return;
+    }
+    grid.innerHTML=filtered.map((service,index)=>{
+      const panelId=`online-service-panel-${service.id||index}`;
+      return `
+      <article class="online-service-card">
+        <div class="online-service-heading">
+          <span class="online-service-icon" aria-hidden="true">${esc(service.icon||'✓')}</span>
+          <div><span class="online-service-number">${String(index+1).padStart(2,'0')}</span><h3>${esc(service.title)}</h3></div>
+        </div>
+        <button class="online-service-toggle" type="button" aria-expanded="false" aria-controls="${esc(panelId)}">
+          <span class="toggle-label">Expand services</span> <span class="toggle-symbol" aria-hidden="true">＋</span>
+        </button>
+        <div class="online-service-details" id="${esc(panelId)}">
+          <ul>${(service.items||[]).map(item=>`<li>${esc(item)}</li>`).join('')}</ul>
+          <button class="btn btn-primary online-card-enquire" type="button" data-service="${esc(service.title)}">Enquire on WhatsApp</button>
+        </div>
+      </article>`;
+    }).join('');
+
+    grid.querySelectorAll('.online-service-toggle').forEach(button=>button.addEventListener('click',()=>{
+      const card=button.closest('.online-service-card');
+      const expanded=!card.classList.contains('expanded');
+      grid.querySelectorAll('.online-service-card.expanded').forEach(openCard=>{
+        if(openCard===card) return;
+        openCard.classList.remove('expanded');
+        const openButton=openCard.querySelector('.online-service-toggle');
+        openButton?.setAttribute('aria-expanded','false');
+        if(openButton) openButton.querySelector('.toggle-label').textContent='Expand services';
+        if(openButton) openButton.querySelector('.toggle-symbol').textContent='＋';
+      });
+      card.classList.toggle('expanded',expanded);
+      button.setAttribute('aria-expanded',String(expanded));
+      button.querySelector('.toggle-label').textContent=expanded ? 'Minimize services' : 'Expand services';
+      button.querySelector('.toggle-symbol').textContent=expanded ? '−' : '＋';
+    }));
+    grid.querySelectorAll('.online-card-enquire').forEach(button=>button.addEventListener('click',()=>{
+      document.dispatchEvent(new CustomEvent('replica:enquire',{detail:{service:button.dataset.service}}));
+    }));
+  };
+  draw();
+  search?.addEventListener('input',event=>draw(event.target.value));
+}
+
+function setupOnlineServiceDialog(services,setMenu){
+  const dialog=document.getElementById('onlineServiceDialog');
+  const form=document.getElementById('onlineServiceForm');
+  const select=document.getElementById('onlineServiceSelect');
+  if(!dialog || !form || !select) return;
+  select.innerHTML='<option value="">Choose a service category</option>'+services.map(service=>`<option value="${esc(service.title)}">${esc(service.title)}</option>`).join('');
+  const open=(service='')=>{
+    setMenu(false);
+    select.value=service;
+    if(!dialog.open) dialog.showModal();
+    window.setTimeout(()=>form.querySelector('input')?.focus(),80);
+  };
+  document.querySelectorAll('.online-request-trigger').forEach(button=>button.addEventListener('click',()=>open(button.dataset.service||'')));
+  document.addEventListener('replica:enquire',event=>open(event.detail?.service||''));
+  document.getElementById('onlineServiceClose')?.addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('click',event=>{ if(event.target===dialog) dialog.close(); });
+  form.addEventListener('submit',event=>{
+    event.preventDefault();
+    const fd=new FormData(form);
+    const file=fd.get('document');
+    const hasFile=file && file instanceof File && file.size>0;
+    if(hasFile && file.size>5*1024*1024){ showToast('Document too large — max 5MB. Bring original to center.'); return; }
+    const details={
+      name:fd.get('name')?.toString().trim(),
+      phone:fd.get('phone')?.toString().trim(),
+      service:fd.get('service')?.toString().trim(),
+      message:fd.get('message')?.toString().trim(),
+      source:'replica-online-service',
+      documentName: hasFile? file.name : ''
+    };
+    const consent=fd.get('consent');
+    if(!details.name || !details.phone || !details.service){ showToast('Please add your name, mobile number and service'); return; }
+    if(!consent){ showToast('Please accept the consent checkbox'); return; }
+    const extra = details.documentName ? `%0AAttachment: ${encodeURIComponent(details.documentName)} (original to be shown at center)` : '';
+    const text=`Namaskar Replica Click,%0AName: ${encodeURIComponent(details.name)}%0APhone: ${encodeURIComponent(details.phone)}%0AService: ${encodeURIComponent(details.service)}%0AWork details: ${encodeURIComponent(details.message||'Please guide me about the required process and documents.')}${extra}%0A%0AI will not send OTP, PIN, password or sensitive ID details here.`;
+    saveBooking(details);
+    dialog.close();
+    form.reset();
+    showToast('Request received — opening WhatsApp. Owner will confirm documents and charges.');
+    window.open(`https://wa.me/917276066532?text=${text}`,'_blank','noopener');
+  });
 }
 
 function handleHeroForm(e){
