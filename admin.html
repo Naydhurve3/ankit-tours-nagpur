@@ -13,9 +13,10 @@
 <body class="admin-bg">
 
 <div id="gate" class="pin-wrap">
-  <h2 style="color:#0f4c81;font-family:Poppins,sans-serif">Owner Access</h2>
+  <h2 style="color:var(--primary);font-family:Poppins,sans-serif">Owner Access</h2>
   <p class="small muted">Sign in to manage Fleet, Packages, Gallery &amp; Testimonials.</p>
-  <input id="pinInput" type="password" placeholder="Enter PIN" maxlength="6" autocomplete="current-password">
+  <label for="pinInput" class="small" style="display:block;text-align:left;margin-top:14px;font-weight:700">Owner PIN</label>
+  <input id="pinInput" type="password" placeholder="Enter PIN" maxlength="64" autocomplete="current-password">
   <button id="pinBtn" class="btn btn-primary" style="width:100%;justify-content:center">Unlock Dashboard</button>
   <p id="pinMsg" class="small" style="color:#b91c1c;margin-top:8px"></p>
   <p class="hint">Contact administrator for access. Public view: <a href="index.html" style="color:#0f4c81;font-weight:700">index.html</a></p>
@@ -50,11 +51,11 @@
     <div class="panel">
       <h3>How Private/Public Works</h3>
       <ul class="small muted" style="line-height:1.8;margin-left:18px">
-        <li><b>Private (this page):</b> Only owner opens <code>admin.html</code>. Add vehicle/image/testimonial or toggle 👁️ to hide. Data saves to browser <code>localStorage</code>.</li>
-        <li><b>Public (index.html):</b> Visitors see only items where Visible = ON. Hidden items stay in admin but not displayed publicly.</li>
-        <li><b>Persist permanently:</b> Click <b>Export JSON</b> and replace <code>assets/data/site-data.json</code> - then changes survive on all devices & after cache clear.</li>
-        <li><b>Image options:</b> Paste Unsplash URL OR upload (base64 stored locally, ~5MB limit). For many images use URLs.</li>
-        <li>Future: swap <code>js/data.js</code> to Firebase/Supabase for cloud sync without Export.</li>
+        <li><b>Owner portal:</b> Changes made while connected to Neon save through protected owner APIs and appear across devices.</li>
+        <li><b>Public website:</b> Visitors receive only items where Visible is enabled. Hidden items remain available to the owner.</li>
+        <li><b>Images:</b> Use accurate, approved vehicle photographs. URL-based images are preferred until managed media storage is added.</li>
+        <li><b>Bookings and drivers:</b> Customer and driver information is private and must never be copied into public content fields.</li>
+        <li><b>Fallback mode:</b> Local/JSON controls are for development recovery only and are not a replacement for cloud publishing.</li>
       </ul>
     </div>
   </div>

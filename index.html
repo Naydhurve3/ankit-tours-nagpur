@@ -16,6 +16,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#mainContent">Skip to main content</a>
+
 <header class="header">
   <nav class="nav">
     <a href="#home" class="logo"><span class="logo-icon">★</span> Ankit Tours & Travels</a>
@@ -27,6 +29,15 @@
       <a href="#packages" data-i18n="nav_packages">Packages</a>
       <a href="#gallery" data-i18n="nav_gallery">Gallery</a>
       <a href="#contact" data-i18n="nav_contact">Contact</a>
+      <div class="mobile-nav-tools">
+        <div class="lang-switch" aria-label="Language">
+          <button data-lang="en" class="active">EN</button>
+          <button data-lang="hi">हिं</button>
+          <button data-lang="mr">मर</button>
+        </div>
+        <a class="mobile-call" href="tel:+917276066532">☎ Call 7276066532</a>
+        <button class="btn btn-primary quote-trigger" type="button">Get a quick quote</button>
+      </div>
     </div>
     <div class="nav-actions">
       <button id="themeToggle" class="theme-btn" aria-label="Switch to dark theme" title="Switch to dark theme">🌙</button>
@@ -36,11 +47,12 @@
         <button data-lang="mr">मर</button>
       </div>
       <a class="pill-call" href="tel:+917276066532">☎ 7276066532</a>
-      <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-controls="navLinks" aria-expanded="false"><span></span><span></span><span></span></button>
     </div>
   </nav>
 </header>
 
+<main id="mainContent">
 <section class="hero" id="home">
   <div class="hero-bg">
     <img src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1600&q=80" alt="Highway travel">
@@ -216,6 +228,7 @@
     </div>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="footer-inner">
@@ -232,6 +245,41 @@
   <span class="float-label">Chat on WhatsApp</span>
   <a href="https://wa.me/917276066532" target="_blank" aria-label="WhatsApp">✆</a>
 </div>
+
+<div class="mobile-action-dock" aria-label="Quick actions">
+  <a href="tel:+917276066532"><span>☎</span> Call</a>
+  <button class="quote-trigger" type="button"><span>✦</span> Quote</button>
+  <a href="https://wa.me/917276066532" target="_blank"><span>◉</span> WhatsApp</a>
+</div>
+
+<aside class="smart-nudge" id="smartNudge" aria-live="polite" hidden>
+  <button class="nudge-close" type="button" aria-label="Dismiss">×</button>
+  <span class="nudge-icon">🚕</span>
+  <div><b>Planning a trip?</b><small>Share the date and route for a quick quote.</small></div>
+  <button class="nudge-action quote-trigger" type="button">Start</button>
+</aside>
+
+<dialog id="quoteDialog" class="quote-dialog" aria-labelledby="quoteTitle">
+  <div class="quote-shell">
+    <button class="quote-close" id="quoteClose" type="button" aria-label="Close quote form">×</button>
+    <span class="kicker">Quick booking</span>
+    <h2 id="quoteTitle">Where are you heading?</h2>
+    <p class="muted">Send the trip details to Ankit Tours on WhatsApp. Final availability and fare are confirmed by the owner.</p>
+    <form class="quote-form" id="quoteForm">
+      <label>Full name<input name="name" autocomplete="name" required></label>
+      <label>Mobile number<input name="phone" type="tel" inputmode="tel" autocomplete="tel" pattern="[0-9+ ]{10,15}" required></label>
+      <div class="quote-row">
+        <label>Travel date<input name="date" type="date"></label>
+        <label>Passengers<input name="passengers" type="number" inputmode="numeric" min="1" max="30" value="1"></label>
+      </div>
+      <label>Service<select name="service"><option value="">Choose a service</option><option>Airport Transfer</option><option>Outstation Tour</option><option>Tadoba Safari</option><option>Pench Safari</option><option>Pilgrimage Tour</option><option>Corporate Travel</option><option>Vehicle Rental</option></select></label>
+      <label>Pickup and destination<textarea name="message" placeholder="Example: Nagpur Airport to Kondhali"></textarea></label>
+      <button class="btn btn-primary" type="submit">Continue on WhatsApp <span aria-hidden="true">↗</span></button>
+    </form>
+  </div>
+</dialog>
+
+<div class="site-toast" id="siteToast" role="status" aria-live="polite"></div>
 
 <dialog id="lightbox">
   <div class="lb-inner">

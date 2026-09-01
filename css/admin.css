@@ -5,7 +5,9 @@ body.admin-bg{background: var(--bg);min-height:100vh;color:var(--text)}
 .topbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .btn-sm{padding:9px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-weight:700;font-size:13px;transition:.2s}
 .btn-sm.primary{background:linear-gradient(135deg,var(--primary),#1e7bbd);color:white;border-color:transparent;box-shadow:0 6px 18px rgba(15,76,129,0.2)}
-.btn-sm:hover{transform:translateY(-1px)}
+.btn-sm:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-sm:active,.tab:active,.icon-btn:active{transform:scale(.96)}
+.btn-sm:focus-visible,.tab:focus-visible,.icon-btn:focus-visible,.field:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 65%,white);outline-offset:2px}
 .pin-wrap{max-width:420px;margin:90px auto;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:var(--shadow-lg);text-align:center}
 .pin-wrap input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);margin:12px 0;font-size:16px;letter-spacing:4px;text-align:center}
 .admin-shell{max-width:1200px;margin:18px auto;padding:0 20px;display:grid;gap:18px}
@@ -20,10 +22,29 @@ body.admin-bg{background: var(--bg);min-height:100vh;color:var(--text)}
 .item{display:grid;grid-template-columns:80px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px}
 .item img{width:80px;height:60px;object-fit:cover;border-radius:10px;background:#e2e8f0}
 .item-actions{display:flex;gap:6px;flex-wrap:wrap}
-.icon-btn{width:34px;height:34px;border-radius:999px;border:1px solid #e2e8f0;background:white;cursor:pointer;display:grid;place-items:center}
-.icon-btn.danger{color:#b91c1c;border-color:#fecaca;background:#fef2f2}
+.icon-btn{width:38px;height:38px;border-radius:999px;border:1px solid var(--border);background:var(--surface-elevated);color:var(--text);cursor:pointer;display:grid;place-items:center;transition:.2s}
+.icon-btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--border));background:color-mix(in srgb,var(--danger) 9%,var(--surface))}
 .item.off{opacity:.55;filter:grayscale(.2)}
 .badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;font-weight:700}
 .badge.on{background:#dcfce7;border-color:#bbf7d0;color:#166534}
 .preview{width:100%;height:120px;object-fit:cover;border-radius:12px;background:#e2e8f0;border:1px dashed #cbd5e1;display:grid;place-items:center;color:#64748b;font-size:13px;overflow:hidden}
 .hint{font-size:12.5px;color:#64748b;margin-top:8px}
+
+@media(max-width:720px){
+  .topbar{position:sticky;padding:10px 12px;align-items:flex-start}
+  .topbar h1{font-size:15px;line-height:40px;white-space:nowrap}
+  .topbar-actions{width:100%;display:grid;grid-template-columns:40px minmax(92px,1fr) repeat(2,auto);gap:6px;overflow-x:auto;padding-bottom:2px}
+  .topbar-actions .field{min-width:92px;width:100%;padding:8px}
+  .topbar-actions .btn-sm{white-space:nowrap;padding:9px 11px}
+  #saveBtn,#exportBtn,#resetBtn{display:none}
+  .admin-shell{margin:12px auto;padding:0 10px;gap:12px}
+  .tabs{position:sticky;top:112px;z-index:8;display:flex;flex-wrap:nowrap;overflow-x:auto;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px);padding:6px 0;scroll-snap-type:x proximity;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}.tab{flex:0 0 auto;scroll-snap-align:start;min-height:42px}
+  .panel{padding:14px;border-radius:15px}
+  .toolbar{display:grid;grid-template-columns:1fr;width:100%}.field{min-width:0;width:100%}
+  .item{grid-template-columns:64px minmax(0,1fr);align-items:start;padding:10px}.item img{width:64px;height:54px}.item-actions{grid-column:1/-1;justify-content:flex-end;border-top:1px solid var(--border);padding-top:8px}
+  .item[style*="grid-template-columns:1fr auto"]{grid-template-columns:1fr!important}
+  .preview{height:160px}
+  .pin-wrap{margin:28px 12px;padding:20px}
+  body.admin-bg{padding-bottom:20px}
+}

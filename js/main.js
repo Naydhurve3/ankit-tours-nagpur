@@ -8,8 +8,38 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // mobile nav
   const ham = document.getElementById("hamburger");
   const navLinks = document.getElementById("navLinks");
-  if(ham) ham.addEventListener("click", ()=> navLinks.classList.toggle("open"));
-  document.querySelectorAll("#navLinks a").forEach(a=> a.addEventListener("click", ()=> navLinks.classList.remove("open")));
+  const header = document.querySelector(".header");
+  const setMenu = open=>{
+    navLinks?.classList.toggle("open", open);
+    ham?.setAttribute("aria-expanded", String(open));
+    ham?.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    document.body.classList.toggle("nav-open", open);
+    if(open) header?.classList.remove("header-hidden");
+  };
+  if(ham) ham.addEventListener("click", ()=> setMenu(!navLinks.classList.contains("open")));
+  document.querySelectorAll("#navLinks a").forEach(a=> a.addEventListener("click", ()=> setMenu(false)));
+  document.addEventListener("click", e=>{
+    if(navLinks?.classList.contains("open") && !e.target.closest(".nav")) setMenu(false);
+  });
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape") setMenu(false); });
+
+  // Compact mobile header: hide on downward scroll, reveal on upward scroll.
+  let lastY = window.scrollY;
+  let scrollTick = false;
+  const syncHeader = ()=>{
+    const y = Math.max(window.scrollY, 0);
+    header?.classList.toggle("scrolled", y > 18);
+    if(window.innerWidth <= 1100 && !navLinks?.classList.contains("open")){
+      header?.classList.toggle("header-hidden", y > 120 && y > lastY + 4);
+      if(y < lastY - 4 || y < 50) header?.classList.remove("header-hidden");
+    }else header?.classList.remove("header-hidden");
+    lastY = y;
+    scrollTick = false;
+  };
+  window.addEventListener("scroll", ()=>{
+    if(!scrollTick){ scrollTick=true; requestAnimationFrame(syncHeader); }
+  },{passive:true});
+  window.addEventListener("resize", ()=>{ if(window.innerWidth>1100) setMenu(false); syncHeader(); });
 
   // active nav on scroll
   const sections = document.querySelectorAll("section[id]");
@@ -67,6 +97,29 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // hero quick form -> whatsapp
   document.getElementById("heroForm")?.addEventListener("submit", handleHeroForm);
   document.getElementById("contactForm")?.addEventListener("submit", handleContactForm);
+
+  // Accessible quick-quote popup and a small, one-time trip prompt.
+  const quoteDialog = document.getElementById("quoteDialog");
+  const openQuote = ()=>{
+    setMenu(false);
+    if(!quoteDialog?.open) quoteDialog?.showModal();
+    window.setTimeout(()=> quoteDialog?.querySelector("input")?.focus(), 80);
+  };
+  document.querySelectorAll(".quote-trigger").forEach(btn=>btn.addEventListener("click", openQuote));
+  document.getElementById("quoteClose")?.addEventListener("click", ()=>quoteDialog.close());
+  quoteDialog?.addEventListener("click", e=>{ if(e.target===quoteDialog) quoteDialog.close(); });
+  document.getElementById("quoteForm")?.addEventListener("submit", handleQuoteForm);
+
+  const nudge = document.getElementById("smartNudge");
+  const dismissNudge = ()=>{
+    if(nudge) nudge.hidden=true;
+    try{ sessionStorage.setItem("att_nudge_seen","1"); }catch{}
+  };
+  nudge?.querySelector(".nudge-close")?.addEventListener("click", dismissNudge);
+  nudge?.querySelector(".nudge-action")?.addEventListener("click", dismissNudge);
+  try{
+    if(!sessionStorage.getItem("att_nudge_seen")) window.setTimeout(()=>{ if(nudge && !quoteDialog?.open) nudge.hidden=false; },12000);
+  }catch{}
 });
 
 function esc(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
@@ -95,11 +148,11 @@ function renderPackages(pkgs){
   if(items.length===0){ tbody.innerHTML = '<tr><td colspan="5" style="text-align:center" class="muted">No packages available</td></tr>'; return;}
   tbody.innerHTML = items.map(p=> `
     <tr>
-      <td><b>${esc(p.service)}</b></td>
-      <td><span class="tag">${esc(p.vehicle)}</span></td>
-      <td><b style="color:var(--primary)">${esc(p.price)}</b></td>
-      <td class="muted small">${esc(p.note||'')}</td>
-      <td><a class="btn btn-primary" style="padding:8px 14px;font-size:13px" href="https://wa.me/917276066532?text=${encodeURIComponent('Hi, enquiry for '+p.service+' - '+p.vehicle+' - '+p.price)}" target="_blank">Book Now</a></td>
+      <td data-label="Service"><b>${esc(p.service)}</b></td>
+      <td data-label="Vehicle"><span class="tag">${esc(p.vehicle)}</span></td>
+      <td data-label="Price"><b style="color:var(--primary)">${esc(p.price)}</b></td>
+      <td data-label="Note" class="muted small">${esc(p.note||'')}</td>
+      <td data-label="Action"><a class="btn btn-primary" style="padding:8px 14px;font-size:13px" href="https://wa.me/917276066532?text=${encodeURIComponent('Hi, enquiry for '+p.service+' - '+p.vehicle+' - '+p.price)}" target="_blank">Book Now</a></td>
     </tr>
   `).join("");
 }
@@ -157,7 +210,38 @@ function handleContactForm(e){
   window.open(`https://wa.me/917276066532?text=${text}`,'_blank');
   saveBooking({name,phone,service,message:msg, source:"contact"});
   e.target.reset();
-  alert("Opening WhatsApp with your details. We will respond quickly!");
+  showToast("Opening WhatsApp with your trip details");
+}
+
+function handleQuoteForm(e){
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const details = {
+    name: fd.get("name")?.toString().trim(),
+    phone: fd.get("phone")?.toString().trim(),
+    date: fd.get("date")?.toString().trim(),
+    passengers: fd.get("passengers")?.toString().trim(),
+    service: fd.get("service")?.toString().trim(),
+    message: fd.get("message")?.toString().trim(),
+    source: "quote-dialog"
+  };
+  if(!details.name || !details.phone){ showToast("Please add your name and mobile number"); return; }
+  const text = `Hi Ankit Tours & Travels,%0AName: ${encodeURIComponent(details.name)}%0APhone: ${encodeURIComponent(details.phone)}%0ATravel date: ${encodeURIComponent(details.date||'Not specified')}%0APassengers: ${encodeURIComponent(details.passengers||'Not specified')}%0AService: ${encodeURIComponent(details.service||'General enquiry')}%0ARoute: ${encodeURIComponent(details.message||'Not specified')}%0A%0APlease confirm availability and quote.`;
+  saveBooking(details);
+  document.getElementById("quoteDialog")?.close();
+  e.target.reset();
+  showToast("Opening WhatsApp — booking is confirmed only after owner approval");
+  window.open(`https://wa.me/917276066532?text=${text}`,'_blank','noopener');
+}
+
+let toastTimer;
+function showToast(message){
+  const toast = document.getElementById("siteToast");
+  if(!toast) return;
+  toast.textContent=message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),3200);
 }
 
 async function saveBooking(b){
