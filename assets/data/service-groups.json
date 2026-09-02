@@ -7,7 +7,7 @@
     "desc": "Rentals, airport, outstation, safari & pilgrimage — Ankit Tours & Travels",
     "color": "#D96C2C",
     "themeKey": "amber",
-    "replicaIds": ["tickets", "bus"],
+    "replicaIds": [],
     "includeTour": true
   },
   {
@@ -18,7 +18,7 @@
     "desc": "Mini-bank assistance, cards, schemes & applications",
     "color": "#0F4C81",
     "themeKey": "blue",
-    "replicaIds": ["banking", "aadhaar", "pan", "government", "farmer", "bachat", "bills"],
+    "replicaIds": ["banking", "aadhaar", "pan", "government", "farmer", "bachat", "bus", "bills"],
     "includeTour": false
   },
   {
@@ -40,7 +40,7 @@
     "desc": "Education, tickets & business support",
     "color": "#2D746F",
     "themeKey": "teal",
-    "replicaIds": ["education", "business"],
+    "replicaIds": ["education", "tickets", "business", "vehicle"],
     "includeTour": false
   }
 ]

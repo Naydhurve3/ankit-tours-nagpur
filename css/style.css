@@ -490,3 +490,5 @@ footer{background:linear-gradient(180deg,#173f4f,#0b2732);color:rgba(255,255,255
 .muted{color:var(--muted)}
 .small{font-size:13px}
 .hidden{display:none !important}
+.travel-service-action{margin-top:10px;width:100%;min-height:42px;border:1px solid color-mix(in srgb,var(--accent) 38%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--accent) 9%,var(--surface));color:var(--primary);font-weight:800;cursor:pointer;transition:.22s}.travel-service-action:hover{background:color-mix(in srgb,var(--accent) 17%,var(--surface));transform:translateY(-2px)}.travel-service-action:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 60%,white);outline-offset:2px}
+.travel-catalog .service-card{min-height:390px}.travel-catalog .service-extra{max-height:none;opacity:1;overflow:visible;margin-top:16px;gap:8px}.travel-catalog .service-extra span{font-size:13px}.travel-catalog .travel-service-action{margin-top:auto}.travel-catalog .section-head{max-width:800px;margin-inline:auto}
