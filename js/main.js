@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
   // Replica Click: grouped catalogue + dedicated group pages
   const replicaServices = await loadReplicaServices();
+  window._serviceSettings = await loadServiceSettings();
   const serviceGroups = await loadServiceGroups();
   window._groups=serviceGroups; window._replicaServices=replicaServices;
   renderServiceGroups(serviceGroups, replicaServices);
@@ -300,6 +301,29 @@ async function loadReplicaServices(){
   return [];
 }
 
+async function loadServiceSettings(){
+  try{
+    const response=await fetch('/api/service-settings');
+    if(response.ok){
+      const rows=await response.json();
+      return Object.fromEntries(rows.map(row=>[row.service_id,row]));
+    }
+  }catch{}
+  return {};
+}
+
+function serviceItems(service){
+  return (service.items||[]).map((label,index)=>{
+    const id=`${service.id}-${index+1}`;
+    return {id,label,labelMr:(service.itemsMr||[])[index]||'',setting:window._serviceSettings?.[id]||{}};
+  }).filter(item=>item.setting.visible!==false)
+    .sort((a,b)=>Number(b.setting.pinned===true)-Number(a.setting.pinned===true));
+}
+
+function serviceItemsMarkup(service){
+  return serviceItems(service).map(item=>`<li class="${item.setting.pinned?'is-pinned':''}">${item.setting.pinned?'<span class="pin-label">★ Featured • विशेष</span>':''}<span>${esc(item.label)}</span>${item.labelMr?`<span class="marathi-copy" lang="mr">${esc(item.labelMr)}</span>`:''}${item.setting.price?`<b class="service-price">${esc(item.setting.price)}</b>`:''}${item.setting.price_note?`<small>${esc(item.setting.price_note)}</small>`:''}</li>`).join('');
+}
+
 function renderReplicaServices(services){
   const grid=document.getElementById('onlineServiceGrid');
   const search=document.getElementById('onlineServiceSearch');
@@ -321,13 +345,13 @@ function renderReplicaServices(services){
       <article class="online-service-card">
         <div class="online-service-heading">
           <span class="online-service-icon" aria-hidden="true">${esc(service.icon||'✓')}</span>
-          <div><span class="online-service-number">${String(index+1).padStart(2,'0')}</span><h3>${esc(service.title)}</h3></div>
+          <div><span class="online-service-number">${String(index+1).padStart(2,'0')}</span><h3>${esc(service.title)}${service.titleMr?`<span class="marathi-copy" lang="mr">${esc(service.titleMr)}</span>`:''}</h3></div>
         </div>
         <button class="online-service-toggle" type="button" aria-expanded="false" aria-controls="${esc(panelId)}">
           <span class="toggle-label">Expand services</span> <span class="toggle-symbol" aria-hidden="true">＋</span>
         </button>
         <div class="online-service-details" id="${esc(panelId)}">
-          <ul>${(service.items||[]).map(item=>`<li>${esc(item)}</li>`).join('')}</ul>
+          <ul>${serviceItemsMarkup(service)}</ul>
           <button class="btn btn-primary online-card-enquire" type="button" data-service="${esc(service.title)}">Enquire on WhatsApp</button>
         </div>
       </article>`;
@@ -494,13 +518,13 @@ function applyGroup(groupId, groups, replicaServices, push=true){
         return `<article class="online-service-card">
           <div class="online-service-heading">
             <span class="online-service-icon" aria-hidden="true">${esc(service.icon||'✓')}</span>
-            <div><span class="online-service-number">${String(index+1).padStart(2,'0')}</span><h3>${esc(service.title)}</h3></div>
+            <div><span class="online-service-number">${String(index+1).padStart(2,'0')}</span><h3>${esc(service.title)}${service.titleMr?`<span class="marathi-copy" lang="mr">${esc(service.titleMr)}</span>`:''}</h3></div>
           </div>
           <button class="online-service-toggle" type="button" aria-expanded="false" aria-controls="${esc(panelId)}">
             <span class="toggle-label">Expand services</span> <span class="toggle-symbol" aria-hidden="true">＋</span>
           </button>
           <div class="online-service-details" id="${esc(panelId)}">
-            <ul>${(service.items||[]).map(item=>`<li>${esc(item)}</li>`).join('')}</ul>
+            <ul>${serviceItemsMarkup(service)}</ul>
             <button class="btn btn-primary online-card-enquire" type="button" data-service="${esc(service.title)}">Enquire on WhatsApp</button>
           </div>
         </article>`;
@@ -555,24 +579,6 @@ function applyGroup(groupId, groups, replicaServices, push=true){
     if(link && group) link.href= hubMap2[group.id] || `services/${group.id}.html`;
     else if(link) link.href='services/index.html';
   }
-  // glassy floating bar for dedicated page hint
-  let floatBar=document.getElementById('glassFloatBar');
-  if(!floatBar && group){
-    floatBar=document.createElement('div');
-    floatBar.id='glassFloatBar';
-    floatBar.className='glass-float-bar';
-    floatBar.innerHTML=`<span style="font-weight:800">${group.icon} ${group.title}</span><a href="services/${group.id}.html" style="background:var(--primary);color:white">Open page →</a><button onclick="this.parentElement.classList.add('hidden')" style="background:var(--surface-elevated)">✕</button>`;
-    document.body.appendChild(floatBar);
-    // auto-hide after 4s, show on scroll up
-    setTimeout(()=> floatBar.classList.add('hidden'), 4000);
-    let lastY=window.scrollY;
-    window.addEventListener('scroll', ()=>{
-      const goingUp=window.scrollY < lastY;
-      if(goingUp) floatBar.classList.remove('hidden');
-      else if(window.scrollY>200) floatBar.classList.add('hidden');
-      lastY=window.scrollY;
-    }, {passive:true});
-  }
   // push state
   if(push){
     const url=new URL(location.href);
@@ -610,8 +616,6 @@ function clearGroup(groups, replicaServices, push=true){
   // but keep catalog hidden, popular hidden
   const bar=document.getElementById('activeFilterBar');
   if(bar) bar.classList.add('hidden');
-  const floatBar=document.getElementById('glassFloatBar');
-  if(floatBar) floatBar.classList.add('hidden');
   if(push){
     const url=new URL(location.href);
     url.searchParams.delete('group');

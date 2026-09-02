@@ -2,6 +2,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   const themeButton=document.getElementById('themeToggle');
   const syncThemeButton=()=>{const dark=document.documentElement.dataset.theme==='dark';themeButton.textContent=dark?'☀️':'🌙';themeButton.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme')};
   themeButton?.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('att_theme',next);document.querySelector('meta[name="theme-color"]')?.setAttribute('content',next==='dark'?'#08131f':'#f5f7fb');syncThemeButton()});syncThemeButton();
+  const languageButtons=[...document.querySelectorAll('[data-home-lang]')];
+  const setLanguageMode=mode=>{const bilingual=mode!=='english';document.body.classList.toggle('english-only',!bilingual);languageButtons.forEach(button=>{const active=button.dataset.homeLang===(bilingual?'bilingual':'english');button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});localStorage.setItem('replica_site_language',bilingual?'bilingual':'english')};
+  languageButtons.forEach(button=>button.addEventListener('click',()=>setLanguageMode(button.dataset.homeLang)));
+  setLanguageMode(localStorage.getItem('replica_site_language')||'bilingual');
+  const marathiNotes={travel:'विमानतळ, वाहन भाडे, बाहेरगावी प्रवास, तीर्थयात्रा, सफारी आणि समूह सहली.',banking:'मिनी बँक, आधार-पॅन, सरकारी सेवा, शेतकरी योजना, कार्ड आणि बिल सहाय्य.',printing:'झेरॉक्स, रंगीत प्रिंट, पासपोर्ट फोटो, स्कॅनिंग आणि लॅमिनेशन सेवा.',online:'शिक्षण, तिकीट व हॉटेल बुकिंग, व्यवसाय आणि वाहन कागदपत्र सहाय्य.'};
+  Object.entries(marathiNotes).forEach(([type,copy])=>{const summary=document.querySelector(`.service-card.${type} .card-summary`);const description=summary?.querySelector('p');if(summary&&description&&!summary.querySelector('.mr-note')){const note=document.createElement('p');note.className='mr-note';note.lang='mr';note.textContent=copy;description.insertAdjacentElement('afterend',note)}});
   const loader=document.getElementById('hubLoader');
   const seen=sessionStorage.getItem('replica_loader_seen');
   setTimeout(()=>{loader?.classList.add('done');document.body.classList.remove('is-loading')},seen?280:1050);

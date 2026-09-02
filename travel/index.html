@@ -108,6 +108,7 @@
 <script src="/js/theme.js"></script>
 <script src="/js/data.js"></script>
 <script src="/js/i18n.js"></script>
+<script src="/js/bilingual.js"></script>
 <script src="/js/main.js"></script>
 <script>
 document.getElementById('travelForm')?.addEventListener('submit', e=>{
@@ -116,8 +117,8 @@ document.getElementById('travelForm')?.addEventListener('submit', e=>{
   const d={name:fd.get('name'), phone:fd.get('phone'), service:fd.get('service'), date:fd.get('date'), passengers:fd.get('passengers'), route:fd.get('route'), vehicle:fd.get('vehicle'), source:'travel-page'};
   if(!d.name||!d.phone||!d.service||!d.route){ alert('Please choose a service and add name, phone and route'); return; }
   fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-  const msg=`Hi Ankit Tours — Replica Click,%0AName: ${encodeURIComponent(d.name)}%0APhone: ${encodeURIComponent(d.phone)}%0AService: ${encodeURIComponent(d.service)}%0ADate: ${encodeURIComponent(d.date||'')}%0ARoute: ${encodeURIComponent(d.route)}%0APassengers: ${encodeURIComponent(d.passengers||'')}%0AVehicle: ${encodeURIComponent(d.vehicle||'')}`;
-  window.open('https://wa.me/917276066532?text='+msg,'_blank');
+  const msg=`Namaskar Ankit Tours & Travels,\n\nI would like to request a travel quote.\n\nName: ${d.name}\nMobile: ${d.phone}\nService: ${d.service}\nTravel date: ${d.date||'Not specified'}\nPickup / route: ${d.route}\nPassengers: ${d.passengers||'Not specified'}\nPreferred vehicle: ${d.vehicle||'Please suggest'}\n\nPlease confirm availability, estimated fare and required advance. Thank you.`;
+  window.open('https://wa.me/917276066532?text='+encodeURIComponent(msg),'_blank','noopener');
   e.target.reset();
 });
 document.querySelectorAll('[data-travel-service]').forEach(button=>button.addEventListener('click',()=>{

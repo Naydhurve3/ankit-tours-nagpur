@@ -25,7 +25,7 @@
   <div class="replica-catalog" id="replicaCatalogWrap"><div class="catalog-head"><div><span class="kicker">Service desk</span><h3>Online services</h3></div><label class="service-search">⌕<input id="onlineServiceSearch" type="search" placeholder="Search education, tickets…"></label></div><div class="online-service-grid" id="onlineServiceGrid"></div><p class="service-safety">Enquiry only — owner confirms before any online submission. No sensitive IDs via form.</p></div>
 </section>
 
-<section class="section reveal" style="max-width:720px;margin:auto"><div class="glass-card" style="padding:22px"><h3 style="color:var(--primary)">Request online assistance</h3><p class="small muted">We ask only service-relevant details.</p><form class="qform" id="onlineForm" style="margin-top:14px"><input name="name" placeholder="Full name" required><input name="phone" placeholder="Mobile number" required pattern="[0-9+ ]{10,15}"><select name="service" required><option value="">Choose a category</option><option>Education Services</option><option>Ticket & Hotel Booking</option><option>Business Services</option><option>Vehicle Document Services</option></select><textarea name="message" placeholder="Brief description"></textarea><label style="display:flex;gap:8px;align-items:center;font-size:12px"><input type="checkbox" required> I will not share sensitive IDs here</label><button type="submit" class="btn btn-primary" style="width:100%">Continue on WhatsApp →</button></form></div></section>
+<section class="section reveal" style="max-width:720px;margin:auto"><div class="glass-card" style="padding:22px"><h3 style="color:var(--primary)">Request online assistance</h3><p class="small muted">Add your requirement and optionally share one supporting document through your device.</p><form class="qform" id="onlineForm" style="margin-top:14px"><input name="name" placeholder="Full name" required><input name="phone" placeholder="Mobile number" required pattern="[0-9+ ]{10,15}"><select name="service" required><option value="">Choose a category</option><option>Education Services</option><option>Ticket & Hotel Booking</option><option>Business Services</option><option>Vehicle Document Services</option></select><textarea name="message" placeholder="Brief description"></textarea><label class="secure-file"><span>Optional document (PDF, JPG or PNG • max 5 MB)</span><input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><small>Shared through your device; this website does not store the file.</small></label><label style="display:flex;gap:8px;align-items:center;font-size:12px"><input type="checkbox" required> I will not share passwords, OTPs or unnecessary sensitive IDs</label><button type="submit" class="btn btn-primary" style="width:100%">Continue on WhatsApp →</button></form></div></section>
 
 <section class="section reveal" id="contact" style="padding-top:16px"><div class="contact-grid"><div class="contact-card"><h3 style="color:var(--primary)">Visit or call</h3><p class="small muted">Near Bank of India, Kondhali • 9 AM–9 PM • <a href="/">Back to Home</a></p></div><div class="map-wrap"><iframe src="https://www.google.com/maps?q=Bank%20of%20India%20Kondhali%20Nagpur&z=14&output=embed" loading="lazy" style="width:100%;height:260px;border:0"></iframe></div></div></section>
 </main>
@@ -34,15 +34,17 @@
 <script src="/js/theme.js"></script>
 <script src="/js/data.js"></script>
 <script src="/js/i18n.js"></script>
+<script src="/js/bilingual.js"></script>
 <script src="/js/main.js"></script>
+<script src="/js/document-share.js"></script>
 <script>
-document.getElementById('onlineForm')?.addEventListener('submit', e=>{
+document.getElementById('onlineForm')?.addEventListener('submit', async e=>{
   e.preventDefault();
   const fd=new FormData(e.target); const d={name:fd.get('name'), phone:fd.get('phone'), service:fd.get('service'), message:fd.get('message'), source:'online-services-page'};
   if(!d.name||!d.phone||!d.service){ alert('Please add name, phone and service'); return; }
   fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-  const msg=`Hi Replica Click (Online),%0AName: ${encodeURIComponent(d.name)}%0APhone: ${encodeURIComponent(d.phone)}%0AService: ${encodeURIComponent(d.service)}%0ADetails: ${encodeURIComponent(d.message||'')}`;
-  window.open('https://wa.me/917276066532?text='+msg,'_blank'); e.target.reset();
+  const msg=`Namaskar Replica Click,\n\nI need assistance with an online service.\n\nName: ${d.name}\nMobile: ${d.phone}\nService category: ${d.service}\nRequirement: ${d.message||'Please guide me about the process.'}\n\nPlease confirm the required documents, charges and suitable visit time. I will not share passwords, OTPs or sensitive identity information here.`;
+  if(await sendServiceEnquiry(msg,e.target)) e.target.reset();
 });
 </script>
 </body>

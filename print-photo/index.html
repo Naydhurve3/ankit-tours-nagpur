@@ -25,7 +25,7 @@
   <div class="replica-catalog" id="replicaCatalogWrap"><div class="catalog-head"><div><span class="kicker">Service desk</span><h3>Print services</h3></div><label class="service-search">⌕<input id="onlineServiceSearch" type="search" placeholder="Search Xerox, photo…"></label></div><div class="online-service-grid" id="onlineServiceGrid"></div><p class="small muted">For upload later: private object storage, deletion policy, malware scan, size/type limits required — not base64.</p></div>
 </section>
 
-<section class="section reveal" style="max-width:720px;margin:auto"><div class="glass-card" style="padding:22px"><h3 style="color:var(--primary)">Request print/photo service</h3><p class="small muted">We ask only print-necessary details. No document upload in this release.</p><form class="qform" id="printForm" style="margin-top:14px"><input name="name" placeholder="Full name" required><input name="phone" placeholder="Mobile number" required pattern="[0-9+ ]{10,15}"><select name="service" required><option value="">Choose a service</option><option>Black-and-white Xerox</option><option>Colour Xerox</option><option>Colour Printing</option><option>Document Scanning</option><option>Lamination</option><option>Passport-size Photo</option><option>Photo Frame Service</option></select><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select name="colour"><option>Black & White</option><option>Colour</option></select><input name="pages" placeholder="Approx. pages / size"></div><input name="time" placeholder="Collection time preference"><button type="submit" class="btn btn-primary" style="width:100%">Continue on WhatsApp →</button></form></div></section>
+<section class="section reveal" style="max-width:720px;margin:auto"><div class="glass-card" style="padding:22px"><h3 style="color:var(--primary)">Request print/photo service</h3><p class="small muted">Add the job details and optionally share one document directly through your device.</p><form class="qform" id="printForm" style="margin-top:14px"><input name="name" placeholder="Full name" required><input name="phone" placeholder="Mobile number" required pattern="[0-9+ ]{10,15}"><select name="service" required><option value="">Choose a service</option><option>Black-and-white Xerox</option><option>Colour Xerox</option><option>Colour Printing</option><option>Document Scanning</option><option>Lamination</option><option>Passport-size Photo</option><option>Photo Frame Service</option></select><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><select name="colour"><option>Black & White</option><option>Colour</option></select><input name="pages" placeholder="Approx. pages / size"></div><input name="time" placeholder="Collection time preference"><label class="secure-file"><span>Optional document (PDF, JPG or PNG • max 5 MB)</span><input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><small>Shared through your device; this website does not store the file.</small></label><button type="submit" class="btn btn-primary" style="width:100%">Continue on WhatsApp →</button></form></div></section>
 
 <section class="section reveal" id="contact" style="padding-top:16px"><div class="contact-grid"><div class="contact-card"><h3 style="color:var(--primary)">Visit or call</h3><p class="small muted">Near Bank of India, Kondhali • 9 AM–9 PM • <a href="/">Back to Home</a></p></div><div class="map-wrap"><iframe src="https://www.google.com/maps?q=Bank%20of%20India%20Kondhali%20Nagpur&z=14&output=embed" loading="lazy" style="width:100%;height:260px;border:0"></iframe></div></div></section>
 </main>
@@ -34,15 +34,17 @@
 <script src="/js/theme.js"></script>
 <script src="/js/data.js"></script>
 <script src="/js/i18n.js"></script>
+<script src="/js/bilingual.js"></script>
 <script src="/js/main.js"></script>
+<script src="/js/document-share.js"></script>
 <script>
-document.getElementById('printForm')?.addEventListener('submit', e=>{
+document.getElementById('printForm')?.addEventListener('submit', async e=>{
   e.preventDefault();
   const fd=new FormData(e.target); const d={name:fd.get('name'), phone:fd.get('phone'), service:fd.get('service'), colour:fd.get('colour'), pages:fd.get('pages'), time:fd.get('time'), source:'print-photo-page'};
   if(!d.name||!d.phone||!d.service){ alert('Please add name, phone and service'); return; }
   fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-  const msg=`Hi Replica Click (Print),%0AName: ${encodeURIComponent(d.name)}%0APhone: ${encodeURIComponent(d.phone)}%0AService: ${encodeURIComponent(d.service)}%0AColour: ${encodeURIComponent(d.colour)}%0APages/Size: ${encodeURIComponent(d.pages)}%0ATime: ${encodeURIComponent(d.time)}`;
-  window.open('https://wa.me/917276066532?text='+msg,'_blank'); e.target.reset();
+  const msg=`Namaskar Replica Click,\n\nI would like to enquire about a print/photo service.\n\nName: ${d.name}\nMobile: ${d.phone}\nService: ${d.service}\nColour mode: ${d.colour||'Not specified'}\nPages / size: ${d.pages||'Not specified'}\nPreferred collection time: ${d.time||'Not specified'}\n\nPlease confirm availability, price and when it will be ready. I will bring or share documents only after confirmation.`;
+  if(await sendServiceEnquiry(msg,e.target)) e.target.reset();
 });
 </script>
 </body>

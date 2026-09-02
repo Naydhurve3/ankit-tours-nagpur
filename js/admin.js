@@ -1,4 +1,4 @@
-let data = {fleet:[], packages:[], gallery:[], testimonials:[]};
+let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[]};
 let currentTab = "fleet";
 let useApi = false;
 let authenticated = false;
@@ -12,13 +12,15 @@ async function checkApi(){
 }
 async function loadFromApi(){
   try{
-    const [fleet, packages, gallery, testimonials] = await Promise.all([
+    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings] = await Promise.all([
       fetch('/api/fleet').then(r=>r.json()),
       fetch('/api/packages').then(r=>r.json()),
       fetch('/api/gallery').then(r=>r.json()),
-      fetch('/api/testimonials').then(r=>r.json())
+      fetch('/api/testimonials').then(r=>r.json()),
+      fetch('/assets/data/replica-services.json').then(r=>r.json()),
+      fetch('/api/service-settings').then(r=>r.ok?r.json():[])
     ]);
-    return {fleet, packages, gallery, testimonials};
+    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings};
   }catch(e){ return null;}
 }
 async function checkSession(){
@@ -45,6 +47,8 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     const seed = await fetchSeed();
     const local = loadLocal();
     data = local ? mergeData(seed, local) : structuredClone(seed);
+    data.serviceCatalog = await fetch('/assets/data/replica-services.json').then(r=>r.json()).catch(()=>[]);
+    data.serviceSettings = data.serviceSettings||[];
     if(!local) saveLocal(data);
   }
 
@@ -127,6 +131,7 @@ function render(){
   const panel = document.getElementById("panel");
   if(currentTab==="fleet") panel.innerHTML = renderFleetAdmin();
   if(currentTab==="packages") panel.innerHTML = renderPackagesAdmin();
+  if(currentTab==="service-pricing") panel.innerHTML = renderServicePricingAdmin();
   if(currentTab==="gallery") panel.innerHTML = renderGalleryAdmin();
   if(currentTab==="testimonials") panel.innerHTML = renderTestimonialsAdmin();
   if(currentTab==="drivers") panel.innerHTML = renderDriversAdmin();
@@ -190,6 +195,19 @@ function renderPackagesAdmin(){
     `).join("")}</div>
   `;
 }
+function renderServicePricingAdmin(){
+  const settings=Object.fromEntries((data.serviceSettings||[]).map(row=>[row.service_id,row]));
+  const rows=(data.serviceCatalog||[]).flatMap(category=>(category.items||[]).map((name,index)=>({id:`${category.id}-${index+1}`,category:category.title,name,setting:settings[`${category.id}-${index+1}`]||{visible:true}})));
+  return `<h3>Pin, Price & Visibility ${useApi?'<span class="badge on">Neon DB</span>':''}</h3>
+    <p class="small muted">Featured services appear first. Add a customer-friendly price such as “₹2 / page” or “From ₹100”. Leave blank to show no price.</p>
+    <label class="field" style="display:flex;margin:14px 0"><input id="serviceAdminSearch" type="search" placeholder="Search services…" style="width:100%;border:0;background:transparent;color:inherit"></label>
+    <div class="list service-admin-list">${rows.map(row=>`<div class="item service-setting-row ${row.setting.visible===false?'off':''}" data-search="${escapeHtml((row.category+' '+row.name).toLowerCase())}" style="grid-template-columns:minmax(180px,1.5fr) minmax(120px,.7fr) minmax(120px,1fr) auto">
+      <div><b>${escapeHtml(row.name)}</b><br><span class="small muted">${escapeHtml(row.category)}</span></div>
+      <input class="field service-price-input" data-id="${row.id}" value="${escapeHtml(row.setting.price||'')}" placeholder="₹ price / unit">
+      <input class="field service-note-input" data-id="${row.id}" value="${escapeHtml(row.setting.price_note||'')}" placeholder="Price note">
+      <div class="item-actions"><button class="icon-btn ${row.setting.pinned?'pinned':''}" title="Pin / unpin" onclick="saveServiceSetting('${row.id}',{pinned:${!row.setting.pinned}})">${row.setting.pinned?'★':'☆'}</button><button class="icon-btn" title="Show / hide" onclick="saveServiceSetting('${row.id}',{visible:${row.setting.visible===false}})">${row.setting.visible===false?'🚫':'👁️'}</button><button class="btn-sm primary" onclick="saveServicePrice('${row.id}')">Save</button></div>
+    </div>`).join('')}</div>`;
+}
 function renderGalleryAdmin(){
   return `
     <h3>Gallery - Add / Hide ${useApi?'<span class="badge on">Neon DB</span>':''}</h3>
@@ -233,7 +251,32 @@ function renderBookingsAdmin(){ return `<h3>Bookings</h3><p class="small muted">
 
 function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
 
-function bindAdminEvents(){ /* base64 removed per spec */ }
+function bindAdminEvents(){
+  document.getElementById('serviceAdminSearch')?.addEventListener('input',event=>{const query=event.target.value.trim().toLowerCase();document.querySelectorAll('.service-setting-row').forEach(row=>row.classList.toggle('hidden',query&&!row.dataset.search.includes(query)))});
+}
+
+async function saveServicePrice(id){
+  const price=document.querySelector(`.service-price-input[data-id="${id}"]`)?.value.trim()||'';
+  const price_note=document.querySelector(`.service-note-input[data-id="${id}"]`)?.value.trim()||'';
+  await saveServiceSetting(id,{price,price_note});
+}
+
+async function saveServiceSetting(id,changes){
+  const current=(data.serviceSettings||[]).find(row=>row.service_id===id)||{service_id:id,price:'',price_note:'',pinned:false,visible:true};
+  const next={...current,...changes,service_id:id};
+  if(useApi){
+    const response=await fetch('/api/service-settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(next)});
+    if(!response.ok){toast('Service update failed');return;}
+    const saved=await response.json();
+    const index=(data.serviceSettings||[]).findIndex(row=>row.service_id===id);
+    if(index>=0)data.serviceSettings[index]=saved;else data.serviceSettings.push(saved);
+  }else{
+    const index=(data.serviceSettings||[]).findIndex(row=>row.service_id===id);
+    if(index>=0)data.serviceSettings[index]=next;else data.serviceSettings.push(next);
+    saveLocal(data);
+  }
+  render();toast('Service display updated');
+}
 
 // Actions - API aware
 async function addFleet(){

@@ -19,6 +19,7 @@ async function run(){
   await sql`CREATE TABLE IF NOT EXISTS availability_blocks (id SERIAL PRIMARY KEY, resource_type TEXT NOT NULL, resource_id INT NOT NULL, start_at TIMESTAMPTZ NOT NULL, end_at TIMESTAMPTZ NOT NULL, status TEXT DEFAULT 'unavailable', reason TEXT, created_by TEXT, created_at TIMESTAMPTZ DEFAULT now())`;
   await sql`CREATE TABLE IF NOT EXISTS booking_assignments (id SERIAL PRIMARY KEY, booking_id INT REFERENCES bookings(id), vehicle_id INT REFERENCES fleet(id), driver_id INT REFERENCES drivers(id), start_at TIMESTAMPTZ, end_at TIMESTAMPTZ, status TEXT DEFAULT 'assigned', assigned_by TEXT, created_at TIMESTAMPTZ DEFAULT now())`;
   await sql`CREATE TABLE IF NOT EXISTS trip_access_tokens (id SERIAL PRIMARY KEY, booking_id INT REFERENCES bookings(id), token_hash TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL, revoked_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT now())`;
+  await sql`CREATE TABLE IF NOT EXISTS service_settings (service_id TEXT PRIMARY KEY, price TEXT DEFAULT '', price_note TEXT DEFAULT '', pinned BOOLEAN DEFAULT false, visible BOOLEAN DEFAULT true, updated_at TIMESTAMPTZ DEFAULT now())`;
   // add columns if old DB: ensure bookings has new cols (ignore if exists - postgres will error if duplicate, so use DO)
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new'`; }catch{}
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS pickup TEXT`; }catch{}

@@ -25,7 +25,7 @@
   <div class="replica-catalog" id="replicaCatalogWrap"><div class="catalog-head"><div><span class="kicker">Service desk</span><h3>Banking services</h3></div><label class="service-search">⌕<input id="onlineServiceSearch" type="search" placeholder="Search banking, PAN, bills…"></label></div><div class="online-service-grid" id="onlineServiceGrid"></div><p class="service-safety" style="background:#fff3cd;border:1px solid #ffe08a;border-radius:10px;padding:10px">⚠️ Do not share OTP/PIN/CVV/password/full Aadhaar. Bring originals to center after confirming requirements.</p></div>
 </section>
 
-<section class="section reveal" style="max-width:720px;margin:auto"><div class="glass-card" style="padding:22px"><h3 style="color:var(--primary)">Ask required documents</h3><p class="small muted">Tell us the category — we reply with a verified, owner-confirmed list. Not an official bank.</p><form class="qform" id="bankingForm" style="margin-top:14px"><input name="name" placeholder="Full name" required><input name="phone" placeholder="Mobile number" required pattern="[0-9+ ]{10,15}"><select name="service" required><option value="">Choose category</option><option>Banking & Mini Bank</option><option>Aadhaar Assistance</option><option>PAN Card Services</option><option>Government Services</option><option>Farmer Services</option><option>Bachat Gat Services</option><option>NCMC & ST Bus Services</option><option>Bill Payment & Recharge</option></select><textarea name="message" placeholder="Brief description — no sensitive IDs"></textarea><label class="consent-row" style="display:flex;gap:8px;align-items:center;font-size:12px"><input type="checkbox" required> I will not share OTP/PIN/CVV here</label><button type="submit" class="btn btn-primary" style="width:100%">Continue on WhatsApp →</button></form></div></section>
+<section class="section reveal" style="max-width:720px;margin:auto"><div class="glass-card" style="padding:22px"><h3 style="color:var(--primary)">Ask required documents</h3><p class="small muted">Tell us the category — we reply with a verified, owner-confirmed list. Not an official bank.</p><form class="qform" id="bankingForm" style="margin-top:14px"><input name="name" placeholder="Full name" required><input name="phone" placeholder="Mobile number" required pattern="[0-9+ ]{10,15}"><select name="service" required><option value="">Choose category</option><option>Banking & Mini Bank</option><option>Aadhaar Assistance</option><option>PAN Card Services</option><option>Government Services</option><option>Farmer Services</option><option>Bachat Gat Services</option><option>NCMC & ST Bus Services</option><option>Bill Payment & Recharge</option></select><textarea name="message" placeholder="Brief description — no sensitive IDs"></textarea><label class="secure-file"><span>Optional document (PDF, JPG or PNG • max 5 MB)</span><input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><small>Shared through your device; this website does not store the file.</small></label><label class="consent-row" style="display:flex;gap:8px;align-items:center;font-size:12px"><input type="checkbox" required> I will not share OTP/PIN/CVV or password here</label><button type="submit" class="btn btn-primary" style="width:100%">Continue on WhatsApp →</button></form></div></section>
 
 <section class="section reveal" id="contact" style="padding-top:16px"><div class="contact-grid"><div class="contact-card"><h3 style="color:var(--primary)">Visit or call</h3><p class="small muted">Near Bank of India, Kondhali • 9 AM–9 PM • <a href="/">Back to Home</a></p></div><div class="map-wrap"><iframe src="https://www.google.com/maps?q=Bank%20of%20India%20Kondhali%20Nagpur&z=14&output=embed" loading="lazy" style="width:100%;height:260px;border:0"></iframe></div></div></section>
 </main>
@@ -34,15 +34,17 @@
 <script src="/js/theme.js"></script>
 <script src="/js/data.js"></script>
 <script src="/js/i18n.js"></script>
+<script src="/js/bilingual.js"></script>
 <script src="/js/main.js"></script>
+<script src="/js/document-share.js"></script>
 <script>
-document.getElementById('bankingForm')?.addEventListener('submit', e=>{
+document.getElementById('bankingForm')?.addEventListener('submit', async e=>{
   e.preventDefault();
   const fd=new FormData(e.target); const d={name:fd.get('name'), phone:fd.get('phone'), service:fd.get('service'), message:fd.get('message'), source:'banking-page'};
   if(!d.name||!d.phone||!d.service){ alert('Please add name, phone and category'); return; }
   fetch('/api/bookings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-  const msg=`Hi Replica Click (Banking),%0AName: ${encodeURIComponent(d.name)}%0APhone: ${encodeURIComponent(d.phone)}%0ACategory: ${encodeURIComponent(d.service)}%0ADetails: ${encodeURIComponent(d.message||'')}`;
-  window.open('https://wa.me/917276066532?text='+msg,'_blank'); e.target.reset();
+  const msg=`Namaskar Replica Click,\n\nI need guidance for a banking/citizen service.\n\nName: ${d.name}\nMobile: ${d.phone}\nService category: ${d.service}\nRequirement: ${d.message||'Please guide me about the process.'}\n\nPlease confirm the required documents, charges and suitable visit time. I will not share OTP, PIN, CVV, password or sensitive ID details here.`;
+  if(await sendServiceEnquiry(msg,e.target)) e.target.reset();
 });
 </script>
 </body>
