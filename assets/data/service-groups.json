@@ -1,56 +1,46 @@
 [
   {
     "id": "travel",
-    "title": "Travel & Vehicle",
+    "slug": "travel",
+    "title": "Tours & Vehicles",
     "icon": "🚗",
-    "desc": "Ankit Tours, Safari, Tickets & Vehicle assistance",
-    "color": "#2d746f",
-    "replicaIds": ["tickets", "bus", "business"],
+    "desc": "Rentals, airport, outstation, safari & pilgrimage — Ankit Tours & Travels",
+    "color": "#D96C2C",
+    "themeKey": "amber",
+    "replicaIds": ["tickets", "bus"],
     "includeTour": true
   },
   {
-    "id": "banking",
-    "title": "Banking & Finance",
+    "id": "banking-services",
+    "slug": "banking-services",
+    "title": "Banking & Citizen Help",
     "icon": "🏦",
-    "desc": "BC Services, AEPS, Bachat Gat & Business finance",
-    "color": "#0f4c81",
-    "replicaIds": ["banking", "bachat"],
+    "desc": "Mini-bank assistance, cards, schemes & applications",
+    "color": "#0F4C81",
+    "themeKey": "blue",
+    "replicaIds": ["banking", "aadhaar", "pan", "government", "farmer", "bachat", "bills"],
     "includeTour": false
   },
   {
-    "id": "identity",
-    "title": "Aadhaar, PAN & Government",
-    "icon": "🪪",
-    "desc": "Identity, PAN & Government certificates",
-    "color": "#6b3fa0",
-    "replicaIds": ["aadhaar", "pan", "government"],
-    "includeTour": false
-  },
-  {
-    "id": "farmer",
-    "title": "Farmer Services",
-    "icon": "🌾",
-    "desc": "PM-KISAN, KCC, 7/12 & Krishi schemes",
-    "color": "#2e7d32",
-    "replicaIds": ["farmer"],
-    "includeTour": false
-  },
-  {
-    "id": "bills",
-    "title": "Bills & Recharge",
-    "icon": "💡",
-    "desc": "Electricity, Water, Gas, Mobile, DTH, FASTag",
-    "color": "#d96c2c",
-    "replicaIds": ["bills"],
-    "includeTour": false
-  },
-  {
-    "id": "printing",
-    "title": "Xerox, Print & Education",
+    "id": "print-photo",
+    "slug": "print-photo",
+    "title": "Print, Photo & Documents",
     "icon": "🖨️",
-    "desc": "Printing, Scanning, Lamination & Education",
-    "color": "#5d4037",
-    "replicaIds": ["printing", "education"],
+    "desc": "Xerox, print, photos, scan & lamination",
+    "color": "#6B3FA0",
+    "themeKey": "violet",
+    "replicaIds": ["printing"],
+    "includeTour": false
+  },
+  {
+    "id": "online-services",
+    "slug": "online-services",
+    "title": "Online Services",
+    "icon": "💻",
+    "desc": "Education, tickets & business support",
+    "color": "#2D746F",
+    "themeKey": "teal",
+    "replicaIds": ["education", "business"],
     "includeTour": false
   }
 ]

@@ -31,14 +31,11 @@
 
 <header class="header">
   <nav class="nav">
-    <a href="#home" class="logo"><img src="assets/brand/replica-click-lockup.png" alt="Replica Click"><span style="font-size:14px;opacity:.6">| Ankit Tours</span></a>
+    <a href="/" class="logo"><img src="assets/brand/replica-click-lockup.png" alt="Replica Click"> <span style="font-size:12px;opacity:.7">Online Center • Mini Bank • Tours & Travels</span></a>
     <div class="nav-links" id="navLinks">
-      <a href="#home" class="active">Home</a>
-      <a href="#replicaCenter">Online Services</a>
+      <a href="#home" class="active" aria-current="page">Home</a>
+      <a href="#servicesHub">Services</a>
       <a href="#aboutReplica">About</a>
-      <a href="#whyReplica">Why Us</a>
-      <a href="#services">Tours</a>
-      <a href="#fleet">Vehicles</a>
       <a href="#contact">Contact</a>
       <div class="mobile-nav-tools">
         <div class="lang-switch" aria-label="Language">
@@ -64,50 +61,31 @@
 </header>
 
 <main id="mainContent">
-<section class="hero" id="home">
-  <div class="hero-bg">
-    <div class="india-scene" aria-hidden="true">
-      <span class="scene-sun"></span><span class="scene-hill hill-one"></span><span class="scene-hill hill-two"></span>
-      <span class="scene-road"></span><span class="scene-road-line"></span>
-      <span class="scene-sign">NAGPUR <i>•</i> KONDHALI</span>
+<section class="hero hero--hub" id="home">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hub-route-lines">
+      <span class="route-line line-car"></span><span class="route-line line-bank"></span><span class="route-line line-doc"></span><span class="route-line line-online"></span>
+      <span class="route-icon icon-car">🚗</span><span class="route-icon icon-bank">🏦</span><span class="route-icon icon-doc">🖨️</span><span class="route-icon icon-online">💻</span>
     </div>
     <div class="hero-overlay"></div>
   </div>
-  <div class="hero-inner">
+  <div class="hero-inner hub-hero-inner">
     <div class="hero-text reveal in">
-      <span class="hero-badge" data-i18n="hero_badge">Trusted in Kondhali • Nagpur since 2016</span>
-      <h1 data-i18n="hero_h1">Your Trusted Travel Partner for Safe & Comfortable Journeys</h1>
-      <p data-i18n="hero_p">Airport transfers, Tadoba & Pench safaris, pilgrimage & corporate tours from Kondhali, Nagpur. Reliable drivers, clean vehicles, on-time every time.</p>
-      <div class="hero-ctas">
-        <a class="btn btn-primary" href="https://wa.me/917276066532" target="_blank"> <span data-i18n="hero_cta1">Book on WhatsApp</span> ↗</a>
-        <a class="btn btn-ghost" href="tel:+917276066532" data-i18n="hero_cta2">Call 7276066532</a>
+      <span class="hero-badge">Kondhali's local service hub</span>
+      <div class="hub-brand">
+        <img src="assets/brand/replica-click-lockup.png" alt="Replica Click" class="hub-logo">
+        <span class="hub-descriptor">Online Center • Mini Bank • Tours & Travels</span>
       </div>
-      <a class="partner-chip" href="#replicaCenter"><span>₹</span><div><small>Also at our Kondhali location</small><b>Replica Click Online Center &amp; Mini Bank</b></div><i>Explore services →</i></a>
-      <div class="hero-stats">
-        <div class="stat-glass"><b>500+</b><span>Happy Trips</span></div>
-        <div class="stat-glass"><b>6+</b><span>Fleet Options</span></div>
-        <div class="stat-glass"><b>24/7</b><span>Support</span></div>
+      <h1>One trusted place for online work, printing, banking assistance & travel</h1>
+      <p>Replica Click is the umbrella store at Bank of India, Kondhali. Ankit Tours & Travels runs as its dedicated travel division. Choose what you need — we confirm documents, price and availability before anything is final.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#servicesHub">Explore services →</a>
+        <a class="btn btn-ghost" href="tel:+917276066532">Call 7276066532</a>
       </div>
     </div>
-    <div class="hero-card reveal in" style="transition-delay:.12s">
-      <h3 data-i18n="hero_form_title">Quick Enquiry</h3>
-      <p class="sub" data-i18n="hero_form_sub">Get instant quote on WhatsApp</p>
-      <form class="qform" id="heroForm">
-        <input name="name" placeholder="Your Name" data-i18n-ph="ph_name" required>
-        <input name="phone" placeholder="Phone Number" data-i18n-ph="ph_phone" required pattern="[0-9+ ]{10,15}">
-        <input name="date" type="date" data-i18n-ph="ph_date">
-        <select name="service">
-          <option value="" data-i18n="ph_pick">Service • Vehicle</option>
-          <option>Airport Transfer - Ertiga</option>
-          <option>Airport Transfer - Innova</option>
-          <option>Outstation Tour</option>
-          <option>Tadoba Safari Package</option>
-          <option>Shirdi Pilgrimage</option>
-          <option>Corporate - Traveller</option>
-        </select>
-        <button type="submit" class="btn btn-primary" data-i18n="btn_get_quote">Get Quote on WhatsApp</button>
-      </form>
-      <div class="trust-row"><span>✓ Trusted by 500+ travellers</span><span>✓ 24x7 Support</span></div>
+    <div class="hero-card hub-hero-card reveal in" style="transition-delay:.12s" aria-hidden="true">
+      <img src="assets/brand/replica-click-lockup.png" alt="" style="width:100%;height:auto;object-fit:contain;">
+      <p class="small muted" style="text-align:center;margin-top:10px">Near Bank of India, Kondhali • 9:00 AM–9:00 PM</p>
     </div>
   </div>
 </section>
@@ -229,6 +207,27 @@
 
 <!-- Tour services are now also filterable via the same group system -->
 <div class="grouped-content" id="groupedContent"></div>
+
+<div class="trust-strip reveal" aria-label="Trust strip">
+  <span>📍 Near Bank of India, Kondhali</span>
+  <span>🕐 Open 9:00 AM–9:00 PM</span>
+  <span>📞 7276066532 • WhatsApp</span>
+  <span>💬 Languages: Marathi, Hindi, English</span>
+  <span>✓ What to bring — confirmed after enquiry</span>
+</div>
+
+<section class="how-it-works reveal" aria-labelledby="howTitle">
+  <div class="section-head" style="margin-bottom:18px">
+    <span class="kicker">How it works</span>
+    <h2 id="howTitle">Choose → Tell us → Owner confirms</h2>
+    <p>An enquiry is not a completed application, banking transaction, or confirmed booking.</p>
+  </div>
+  <div class="how-grid">
+    <div class="how-step"><span class="how-num">01</span><b>Choose a service</b><small>Pick one of the four groups and explore its focused page.</small></div>
+    <div class="how-step"><span class="how-num">02</span><b>Tell us what you need</b><small>Share minimum safe details in the contextual form or WhatsApp.</small></div>
+    <div class="how-step"><span class="how-num">03</span><b>Owner confirms</b><small>Documents, price or availability confirmed before anything is final.</small></div>
+  </div>
+</section>
 
 <section class="section replica-about reveal" id="aboutReplica">
   <div class="about-grid">

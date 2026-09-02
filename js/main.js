@@ -107,11 +107,11 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   const initialGroup = getInitialGroup();
   if(initialGroup) applyGroup(initialGroup, serviceGroups, replicaServices, false);
   else {
-    // Home clean: hide detailed catalog and tour sections until a group is chosen
+    // Home clean: hide detailed catalog and all tour-related sections until a group is chosen (per spec homepage = 4 cards only)
     document.getElementById('replicaCatalogWrap')?.classList.add('hidden');
     document.getElementById('popularStrip')?.classList.add('hidden');
     document.getElementById('groupPlaceholder')?.classList.remove('hidden');
-    ['services','fleet','packages','routes'].forEach(id=>{
+    ['services','fleet','packages','routes','about','why','gallery','testimonials'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.classList.add('filtered-hidden');
     });
@@ -434,9 +434,11 @@ function renderServiceGroups(groups, replicaServices){
     if(explore){
       explore.addEventListener('click', (e)=>{
         e.stopPropagation();
-        // glassy navigation with subtle animation
         explore.textContent='Opening…';
-        location.href=`services/${gid}.html`;
+        // new hub routes per spec 27.3
+        const hubMap={travel:'/travel/', 'banking-services':'/banking-services/', 'print-photo':'/print-photo/', 'online-services':'/online-services/'};
+        const target=hubMap[gid] || `services/${gid}.html`;
+        location.href=target;
       });
     }
   });
@@ -447,9 +449,13 @@ function renderServiceGroups(groups, replicaServices){
 function getInitialGroup(){
   const urlGroup=new URLSearchParams(location.search).get('group');
   if(urlGroup) return urlGroup;
-  // check path /services/<id>.html
+  // check path /services/<id>.html (legacy)
   const m=location.pathname.match(/\/services\/([^\/\.]+)\.html/i);
   if(m) return m[1];
+  // new hub routes per spec 27.3
+  const path=location.pathname.replace(/\/index\.html$/,'').replace(/\/$/,'');
+  const seg=path.split('/').filter(Boolean).pop();
+  if(['travel','banking-services','print-photo','online-services'].includes(seg)) return seg;
   return null;
 }
 let _activeGroup=null;
@@ -521,8 +527,8 @@ function applyGroup(groupId, groups, replicaServices, push=true){
       }));
     }
   }
-  // toggle tour sections visibility — on Home they are hidden until Travel group is chosen
-  const tourSections=['services','fleet','packages','routes'];
+  // toggle tour-related sections — Home hides them until Travel chosen; dedicated travel page shows them always
+  const tourSections=['services','fleet','packages','routes','about','why','gallery','testimonials'];
   const showTour = group ? !!group.includeTour : true;
   tourSections.forEach(id=>{
     const el=document.getElementById(id);
@@ -545,7 +551,8 @@ function applyGroup(groupId, groups, replicaServices, push=true){
   if(bar && label){
     bar.classList.remove('hidden');
     label.textContent = group ? `${group.icon} ${group.title} — ${filteredReplica.length} categories` : 'All services';
-    if(link && group) link.href=`services/${group.id}.html`;
+    const hubMap2={travel:'/travel/', 'banking-services':'/banking-services/', 'print-photo':'/print-photo/', 'online-services':'/online-services/'};
+    if(link && group) link.href= hubMap2[group.id] || `services/${group.id}.html`;
     else if(link) link.href='services/index.html';
   }
   // glassy floating bar for dedicated page hint
@@ -579,8 +586,8 @@ function applyGroup(groupId, groups, replicaServices, push=true){
   window._groups=groups; window._replicaServices=replicaServices;
 }
 function clearGroup(groups, replicaServices, push=true){
-  // If we're on a dedicated group page (/services/<id>.html), go back to home
-  if(location.pathname.match(/\/services\/(travel|banking|identity|farmer|bills|printing)\.html/i)){
+  // If we're on a dedicated group page, go back to home
+  if(location.pathname.match(/\/services\/(travel|banking|identity|farmer|bills|printing|banking-services|print-photo|online-services)(\.html)?/i) || ['/travel','/banking-services','/print-photo','/online-services'].some(p=>location.pathname.startsWith(p))){
     location.href='/';
     return;
   }

@@ -977,3 +977,366 @@ The site is not production-ready merely because Vercel reports `READY` or Neon r
 The local implementation now includes a signature-style loader, a locally illustrated Nagpur/Kondhali road hero, a Central India route map, locally labelled destination artwork, expandable service and booking-detail panels, and code-native 3D vehicle visuals. Fleet records now support `display_mode` (`3d`, `photo`, or `auto`), `model_color`, and `vehicle_type`; the owner form exposes these choices and public cards respect them. Generic Unsplash seed/gallery placeholders render as branded local travel posters instead of presenting unrelated foreign imagery. Real owner-supplied non-placeholder gallery photos remain supported.
 
 The 3D vehicles are intentionally CSS/HTML rather than heavy WebGL models: they load quickly on low-end phones, support dark mode, animate without an additional runtime, and degrade safely. If photorealistic rotatable models are required later, add optimized GLB assets only after measuring mobile download and GPU costs.
+
+---
+
+## 27. Multi-Service Hub Redesign Contract — Planned 2 September 2026
+
+### 27.1 Status and intent
+
+This section is an implementation plan, not a claim that the redesign is already built. It supersedes the current public information architecture where tours, vehicles, online services, packages, routes, and other material appear as one long page. Existing security, privacy, authentication, publishing, driver, booking, and audit requirements elsewhere in this document remain mandatory.
+
+The new website should present the owner's full store as one trusted local service hub. The Replica Click logo becomes the umbrella public brand; Ankit Tours & Travels remains a named service division inside it. Visitors first choose the kind of help they need, then enter a focused page that contains only information and actions relevant to that service.
+
+Primary design goals:
+
+1. Make the homepage understandable in five seconds.
+2. Group services by customer intent rather than expose a long raw list.
+3. Give every group its own visual language while keeping one coherent design system.
+4. Minimize clutter through progressive disclosure, contextual popups, and focused service pages.
+5. Keep important contact actions reachable without covering content.
+6. Make mobile the primary layout, not a compressed desktop page.
+
+### 27.2 Recommended brand hierarchy
+
+```text
+Replica Click — umbrella store identity
+│
+├── Ankit Tours & Travels
+│   ├── Vehicle rental
+│   ├── Airport and local travel
+│   ├── Outstation and pilgrimage
+│   └── Safari and group travel
+│
+├── Banking & Citizen Assistance
+│   ├── Mini-bank / AEPS assistance
+│   ├── PAN and Aadhaar-related assistance
+│   ├── Government and farmer services
+│   └── Bills, recharge and transport cards
+│
+├── Print, Photo & Document Studio
+│   ├── Xerox and printing
+│   ├── Passport/photo services
+│   ├── Scan and document preparation
+│   └── Lamination
+│
+└── Education, Tickets & Business Help
+    ├── Education applications
+    ├── Ticket assistance
+    ├── Business-related services
+    └── Other guided online work
+```
+
+Do not rename Ankit Tours & Travels to Replica Click. The homepage header may use the Replica Click logo with the descriptor `Online Center • Mini Bank • Tours & Travels`, while the travel page prominently uses `Ankit Tours & Travels — a Replica Click service`.
+
+### 27.3 Target navigation and routes
+
+Use real routes/pages rather than scrolling every visitor through one oversized document.
+
+| Route | Purpose | Primary action |
+|---|---|---|
+| `/` or `index.html` | Multi-service homepage and group selector | Explore a service group |
+| `/travel/` | Ankit Tours, fleet, routes, packages and trip enquiry | Request travel quote |
+| `/banking-services/` | Banking, PAN, Aadhaar, farmer and government assistance | Ask required documents |
+| `/print-photo/` | Xerox, printing, photo, scanning and lamination | Request print/photo service |
+| `/online-services/` | Education, tickets, bills, business and other online work | Request online assistance |
+| `/contact/` | Shared location, hours, directions and contact choices | Call or open WhatsApp |
+| `/track/` | Future secure booking/trip lookup only | Open protected trip information |
+| `/admin/` | Authenticated owner console; never linked as a public CTA | Owner login |
+
+If the project remains static HTML, implement folders with `index.html` files. If it moves to a router/framework, preserve these clean URLs and ensure direct refresh works on Vercel.
+
+### 27.4 End-to-end public workflow
+
+```mermaid
+flowchart TD
+    A[Animated Replica Click loader] --> B[Multi-service homepage]
+    B --> C{What do you need?}
+    C --> T[Travel and vehicles]
+    C --> K[Banking and citizen help]
+    C --> P[Print, photo and documents]
+    C --> O[Online, education and tickets]
+    T --> TP[Focused travel page]
+    K --> KP[Focused banking assistance page]
+    P --> PP[Focused print and photo page]
+    O --> OP[Focused online services page]
+    TP --> E[Contextual enquiry drawer]
+    KP --> E
+    PP --> E
+    OP --> E
+    E --> V[Validate minimum safe details]
+    V --> R[Create enquiry record]
+    R --> W[Continue on WhatsApp]
+    W --> X[Owner confirms documents, price and availability]
+```
+
+The form must adapt to its source page. Travel asks for date, route, passengers, and vehicle preference. Print asks for print type, colour/black-and-white, approximate pages, size, and collection time—but not document upload in the initial public version. Banking and citizen assistance asks only for the service category and a safe description. Sensitive identifiers and credentials are never collected.
+
+### 27.5 Homepage composition
+
+The homepage is a directory and trust surface, not the complete catalogue.
+
+#### A. Loader
+
+- Use the supplied transparent Replica Click logo as the central mark.
+- Animate the gold orbit as a short path sweep and reveal `Replica Click` with a restrained signature/wipe effect.
+- Follow with the descriptor `Online Center • Mini Bank • Tours & Travels`.
+- Target duration: 700–1,200 ms on first visit; 300–500 ms on internal navigation if transitions are used.
+- Never block longer than 1,800 ms. Skip immediately for `prefers-reduced-motion`.
+- Store only a session flag so repeat page loads do not replay the full animation.
+
+#### B. Header
+
+- Left: compact Replica Click logo lockup.
+- Centre on desktop: Home, Services, About, Contact.
+- Right: language selector, day/night theme control, and one `Get help` button.
+- Mobile: logo, theme button, and menu button. Open navigation in a glass sheet grouped by service family.
+- Header hides on downward scroll and returns on upward scroll or keyboard focus.
+
+#### C. Hero
+
+- Eyebrow: `Kondhali's local service hub`.
+- Heading: one concise promise covering online work, printing, banking assistance, and travel.
+- Two actions only: `Explore services` and `Call 7276066532`.
+- Use the Replica Click logo as a deliberate brand object, not a large empty poster image.
+- Optional background: subtle route lines connect icons for a car, bank, document, and computer. Avoid generic foreign travel photographs.
+
+#### D. Main service-group selector
+
+Display four large cards only:
+
+| Group card | Visual motif | Preview copy | Destination |
+|---|---|---|---|
+| Tours & Vehicles | CSS 3D vehicle, road line, warm amber | Rentals, airport, outstation, safari and pilgrimage | `/travel/` |
+| Banking & Citizen Help | Secure vault/grid, blue and cyan | Mini-bank assistance, cards, schemes and applications | `/banking-services/` |
+| Print, Photo & Documents | Paper stack/printer frame, violet and coral | Xerox, print, photos, scan and lamination | `/print-photo/` |
+| Online Services | Cursor/network motif, teal and indigo | Education, tickets, bills and business support | `/online-services/` |
+
+Each card contains one sentence, three example chips at most, and one `Explore` control. On hover/focus the illustration may tilt by 1–2 degrees, the border glow may move, and the arrow may translate 4 px. On touch, the card opens directly; never require hover to reveal essential information.
+
+#### E. Trust and utility strip
+
+Show only verified facts:
+
+- Near Bank of India, Kondhali.
+- Open 9:00 AM–9:00 PM, if owner reconfirms the hours.
+- Call and WhatsApp number.
+- Languages supported.
+- `What to bring` guidance is confirmed after enquiry.
+
+Do not show fake customer counts, ratings, government logos, bank logos, authorization badges, or “instant approval” statements.
+
+#### F. How it works
+
+Use three short steps: `Choose a service` → `Tell us what you need` → `Owner confirms documents, price or availability`. This section should explicitly distinguish an enquiry from a completed government application, banking transaction, or confirmed travel booking.
+
+#### G. Location and footer
+
+Use one compact map/location card, opening hours, call, WhatsApp, and directions. Footer columns should be grouped as Service pages, Store information, and Legal/privacy. Do not repeat the complete service list.
+
+### 27.6 Focused service-page templates
+
+Every service page follows the same structural rhythm:
+
+```text
+Context header and breadcrumb
+→ Service-specific hero
+→ Grouped catalogue/filters
+→ Pricing or requirements guidance where verified
+→ Contextual trust/safety note
+→ Related services from the same family
+→ Enquiry action
+→ Shared location/footer
+```
+
+#### Travel page
+
+- Retain the Deccan Road visual direction and CSS 3D/photo vehicle choice.
+- Group catalogue into `Local & Airport`, `Outstation`, `Safari`, `Pilgrimage`, and `Group/Corporate`.
+- Keep fleet availability and driver information private until a booking is confirmed, as defined earlier in this document.
+- Packages use concise cards on mobile; comparison table is optional on wide screens.
+- Sticky contextual action: `Request travel quote`.
+
+#### Banking and citizen-assistance page
+
+- Use calm blue/cyan rather than aggressive financial imagery.
+- Group into `Mini Bank & AEPS Assistance`, `Identity & PAN`, `Government & Farmer`, and `Bills/Cards`.
+- Display requirements as expandable guidance only after owner verification.
+- Prominently warn: never share OTP, PIN, CVV, password, or full account/Aadhaar details through the website or WhatsApp.
+- Never imply the website itself performs or guarantees a financial transaction.
+
+#### Print and photo page
+
+- Use light paper surfaces, crop marks, page-stack depth, and controlled violet accents.
+- Group into `Xerox & Print`, `Photo`, `Scan & Document`, and `Lamination`.
+- If prices are published, include size, colour mode, side count, paper type, quantity rule, tax status if relevant, and `last reviewed` date.
+- A later upload feature requires private object storage, deletion policy, malware scanning, size/type limits, consent, and automatic expiry. Do not implement casual base64 document storage.
+
+#### Online services page
+
+- Group education, tickets, recharge, business and miscellaneous guided work.
+- Provide search and filters without displaying all details initially.
+- Each service opens an accordion or detail sheet with description, expected visit type, owner-verified documents, estimated processing assistance time, and an enquiry action.
+
+### 27.7 Progressive-disclosure behavior
+
+| Component | Default state | Trigger | Open state | Close behavior |
+|---|---|---|---|---|
+| Service group card | Summary | Click/tap/Enter | Navigate to focused page | Browser back or breadcrumb |
+| Service accordion | Collapsed | Click/tap/Enter | One panel expanded | Same control or opening another panel |
+| Enquiry drawer | Hidden | Page CTA | Bottom sheet on mobile; side/modal panel on desktop | Close button, Escape, or backdrop |
+| Mobile action dock | Visible briefly | Load, scroll upward, focus | Glass Call + WhatsApp controls | Auto-hide after about 3 seconds or downward scroll |
+| Header | Visible | Initial load/upward scroll | Full compact navigation | Auto-hide on downward scroll |
+| Helpful prompt | Hidden | Intent signal or delay | Small contextual card | Dismiss, CTA, route change, or 8-second timeout |
+| Image/lightbox | Thumbnail | Click/tap | Modal preview | Close, Escape, or backdrop |
+
+Only one unsolicited prompt may be visible at a time. Do not show travel prompts on banking/printing pages. Do not place a prompt above the mobile action dock. Never auto-open the enquiry form on first load.
+
+### 27.8 Glass design system
+
+Glassy surfaces are for floating/navigation layers, not every card. Content cards need stronger opaque backgrounds for readability.
+
+```css
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.66);
+  --glass-border: rgba(255, 255, 255, 0.52);
+  --glass-shadow: 0 16px 48px rgba(14, 30, 46, 0.16);
+  --glass-blur: 20px;
+  --radius-floating: 20px;
+}
+
+[data-theme="dark"] {
+  --glass-bg: rgba(10, 25, 43, 0.68);
+  --glass-border: rgba(174, 218, 230, 0.16);
+  --glass-shadow: 0 18px 54px rgba(0, 0, 0, 0.36);
+}
+
+.floating-surface {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-floating);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+}
+```
+
+Provide a solid/translucent fallback before `backdrop-filter`. Text contrast must remain at least WCAG AA. Recommended radii: 14 px controls, 20 px floating docks, 24–28 px feature panels. Use a one-pixel highlight and one restrained shadow; avoid multiple neon glows around every element.
+
+### 27.9 Motion and interaction tokens
+
+```css
+:root {
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+  --motion-fast: 160ms;
+  --motion-base: 260ms;
+  --motion-slow: 420ms;
+  --lift-small: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+```
+
+Motion rules:
+
+- Button press: scale to 0.97 for 100–160 ms.
+- Card hover: lift no more than 3–5 px; no continuous bobbing.
+- Page entry: opacity plus 12–18 px movement; stagger only the four group cards.
+- Accordion: animate grid rows/height and opacity; update `aria-expanded` immediately.
+- Theme change: cross-fade colour tokens in 180–260 ms; do not flash white.
+- Logo orbit: play once, then stop. Decorative infinite animation must be subtle or omitted.
+- Scroll effects must use transforms/opacity rather than expensive layout properties.
+
+### 27.10 Responsive layout contract
+
+| Width | Layout |
+|---|---|
+| 0–479 px | One-column group cards, bottom-sheet forms, auto-hiding two-action dock |
+| 480–767 px | One-column cards with wider media; compact two-column trust facts if space permits |
+| 768–1099 px | Two-column group grid; tablet header/menu; side-by-side selected sections |
+| 1100 px+ | Four-card or two-by-two hero grid, full navigation, side/modal enquiry panel |
+
+Mobile requirements:
+
+- Minimum interactive target 44×44 px.
+- No essential hover-only behavior.
+- No horizontal page scroll at 320, 360, 390, 412, or 480 px.
+- Respect safe-area insets around the floating dock and bottom sheet.
+- Sticky/fixed elements must consume no more than roughly 15% of viewport height when open.
+- When the keyboard opens, forms remain scrollable and the floating dock hides.
+- Cards use short summaries; details open in accordion or dedicated pages.
+
+### 27.11 Content and owner-console model
+
+Do not hard-code the future homepage groups independently from their service records. Add a publishable service taxonomy:
+
+| Entity | Important fields |
+|---|---|
+| `service_groups` | id, slug, name, short_description, icon/media, theme_key, sort_order, visible, status |
+| `services` | id, group_id, name, summary, requirement_notes, price_text, processing_note, enquiry_type, visible, status |
+| `business_units` | id, name, descriptor, logo_media_id, phone, WhatsApp, address, hours, verified_at |
+| `page_sections` | id, route, section_type, payload, sort_order, visible, status, locale |
+| `enquiries` | existing booking fields plus business_unit, service_group, service_id, consent and status |
+
+Owner controls must support draft, preview, publish, hide, reorder, archive, and audit history. Hiding a group removes it from homepage/navigation but must not expose drafts through APIs, search indexes, sitemaps, metadata, or predictable URLs. Deleting remains a separate, confirmed action.
+
+### 27.12 Accessibility, SEO and performance
+
+- One descriptive `h1` per page; headings follow a logical hierarchy.
+- Every accordion button uses `aria-expanded` and `aria-controls`.
+- Dialogs trap focus, close with Escape, restore focus to their trigger, and have visible labels.
+- Current navigation page uses `aria-current="page"`.
+- Focus rings remain visible in both themes.
+- Logo alt text identifies Replica Click; decorative copies use empty alt text.
+- Each service page receives unique title, description, canonical URL, Open Graph metadata, and LocalBusiness/Service structured data containing only verified information.
+- Keep first-load JavaScript small. Lazy-load galleries, maps, and optional 3D assets.
+- Optimize the transparent logo into appropriately sized WebP/AVIF plus PNG fallback.
+- Target Core Web Vitals: LCP under 2.5 s, CLS under 0.1, INP under 200 ms on a representative mid-range mobile connection.
+
+### 27.13 Implementation sequence
+
+1. **Content confirmation:** owner approves umbrella branding, group names, hours, claims, categories, and which services are active.
+2. **Route foundation:** create the four public service pages and shared header/footer without removing working forms.
+3. **Homepage replacement:** build loader, concise hero, four service-group cards, trust strip, how-it-works, and location.
+4. **Content migration:** move current travel content to `/travel/` and Replica catalogue items into their correct focused pages.
+5. **Interaction layer:** add accordions, contextual enquiry drawer, auto-hiding header/dock, theme transitions, and reduced-motion handling.
+6. **Data layer:** migrate static service JSON into publishable service-group/service records if no-code owner management is required now.
+7. **Owner console:** add grouped CRUD, preview, explicit publish, visibility, ordering, audit, and enquiry source filters.
+8. **Quality pass:** test phone/tablet/desktop, keyboard, screen reader basics, theme persistence, no-JS fallback, forms, direct routes, metadata, and performance.
+9. **Staging approval:** owner reviews every service and legal/authorization claim before production deployment.
+
+### 27.14 Acceptance criteria
+
+The redesign is ready only when:
+
+- Homepage shows exactly four primary service groups rather than the entire service catalogue.
+- Every group routes to a focused, directly loadable page with a breadcrumb/back path.
+- Replica Click is the visible umbrella identity and Ankit Tours remains clearly named on travel pages.
+- Travel, banking, printing, and online-service forms ask only relevant, minimum information.
+- Sensitive identifiers, credentials, OTPs, PINs, and documents are not collected by public general-enquiry forms.
+- Mobile dock contains only Call and WhatsApp, auto-hides without becoming undiscoverable, and never covers form controls.
+- Accordions expand/minimize reliably with one panel open at a time and correct accessibility state.
+- Contextual prompts never appear on unrelated service pages and never compete with another popup.
+- Light/dark themes retain readable contrast and avoid a loading flash.
+- Reduced-motion users receive a usable non-animated experience.
+- Owner can control visibility and publishing without editing code if the database-backed content phase is included.
+- Direct URL refresh, 404 handling, SEO metadata, analytics events, and Vercel deployment all pass staging verification.
+
+### 27.15 Decisions required before implementation
+
+The owner should confirm these items before the structural rebuild begins:
+
+1. Whether `Replica Click` is approved as the umbrella website name, with Ankit Tours as its travel division.
+2. The exact header descriptor: recommended `Online Center • Mini Bank • Tours & Travels`.
+3. Which banking/identity services are currently offered and which authorization claims can be documented.
+4. Whether prices should be public, `starting from`, or enquiry-only for each group.
+5. Whether Marathi is the default language or English remains default with Marathi/Hindi controls.
+6. Whether the owner needs no-code editing for all service groups in the first rebuild or in a later phase.
+7. Whether document upload is intentionally excluded for the first release; exclusion is recommended until protected storage and deletion controls exist.
