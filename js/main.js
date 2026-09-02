@@ -99,12 +99,23 @@ document.addEventListener("DOMContentLoaded", async ()=>{
   // Replica Click: grouped catalogue + dedicated group pages
   const replicaServices = await loadReplicaServices();
   const serviceGroups = await loadServiceGroups();
+  window._groups=serviceGroups; window._replicaServices=replicaServices;
   renderServiceGroups(serviceGroups, replicaServices);
   renderReplicaServices(replicaServices);
   setupOnlineServiceDialog(replicaServices, setMenu);
-  // initial group from URL ?group= or /services/<id>.html path
+  // initial group from URL ?group= or /services/<id>.html path — Home starts with only groups visible (no clutter)
   const initialGroup = getInitialGroup();
   if(initialGroup) applyGroup(initialGroup, serviceGroups, replicaServices, false);
+  else {
+    // Home clean: hide detailed catalog and tour sections until a group is chosen
+    document.getElementById('replicaCatalogWrap')?.classList.add('hidden');
+    document.getElementById('popularStrip')?.classList.add('hidden');
+    document.getElementById('groupPlaceholder')?.classList.remove('hidden');
+    ['services','fleet','packages','routes'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.classList.add('filtered-hidden');
+    });
+  }
   document.querySelectorAll('[data-popular]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const val=btn.getAttribute('data-popular')||'';
@@ -396,28 +407,42 @@ async function loadServiceGroups(){
 function renderServiceGroups(groups, replicaServices){
   const wrap=document.getElementById('serviceGroups');
   if(!wrap) return;
-  // compute counts
   wrap.innerHTML = groups.map(g=>{
     const count = g.replicaIds ? replicaServices.filter(s=> g.replicaIds.includes(s.id)).length : 0;
-    const tourCount = g.includeTour ? 6 : 0; // 6 tour cards
+    const tourCount = g.includeTour ? 6 : 0;
     const total = count + tourCount;
-    return `<button class="group-card" type="button" data-group="${esc(g.id)}" data-page="services/${esc(g.id)}.html" aria-label="View ${esc(g.title)}">
+    return `<div class="group-card" role="button" tabindex="0" data-group="${esc(g.id)}" style="--group-accent:${esc(g.color)}" aria-label="View ${esc(g.title)}">
       <div class="group-icon" style="background: color-mix(in srgb, ${esc(g.color)} 14%, var(--surface-elevated)); border-color: color-mix(in srgb, ${esc(g.color)} 22%, var(--border))">${esc(g.icon)}</div>
       <div class="group-title">${esc(g.title)}</div>
       <div class="group-desc">${esc(g.desc)}</div>
-      <small>${total} services • <span style="color:${esc(g.color)}">View →</span></small>
+      <small>${total} services</small>
       <span class="group-count">${total}</span>
-    </button>`;
-  }).join('') + `<button class="group-card" type="button" data-group="all" style="border-style:dashed"><div class="group-icon">✦</div><div class="group-title">All Services</div><div class="group-desc">Show everything together</div><small>Back to home view</small></button>`;
-  wrap.querySelectorAll('.group-card').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const g=btn.getAttribute('data-group');
-      if(g==='all') clearGroup(groups, replicaServices);
-      else applyGroup(g, groups, replicaServices, true);
-      // if shift+click or middle click for page, also allow page navigation on separate link – but we use filter in place; page link is via view-page-link
+      <button class="group-explore" type="button" data-explore="${esc(g.id)}" aria-label="Explore ${esc(g.title)} page">Explore →</button>
+    </div>`;
+  }).join('') + `<button class="group-card" type="button" data-group="all" style="border-style:dashed;--group-accent:#627076"><div class="group-icon">✦</div><div class="group-title">All Services</div><div class="group-desc">Show everything together</div><small>Back to home view</small></button>`;
+  wrap.querySelectorAll('.group-card').forEach(card=>{
+    const gid=card.getAttribute('data-group');
+    const explore=card.querySelector('[data-explore]');
+    card.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-explore]')) return; // let explore button handle navigation
+      if(gid==='all') clearGroup(groups, replicaServices);
+      else applyGroup(gid, groups, replicaServices, true);
     });
+    card.addEventListener('keydown', e=>{
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); card.click(); }
+    });
+    if(explore){
+      explore.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        // glassy navigation with subtle animation
+        explore.textContent='Opening…';
+        location.href=`services/${gid}.html`;
+      });
+    }
   });
-  // also make groups navigable via keyboard
+  // keyboard for all button
+  const allBtn=wrap.querySelector('[data-group="all"]');
+  if(allBtn) allBtn.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') { e.preventDefault(); clearGroup(groups, replicaServices); }});
 }
 function getInitialGroup(){
   const urlGroup=new URLSearchParams(location.search).get('group');
@@ -496,7 +521,7 @@ function applyGroup(groupId, groups, replicaServices, push=true){
       }));
     }
   }
-  // toggle tour sections visibility
+  // toggle tour sections visibility — on Home they are hidden until Travel group is chosen
   const tourSections=['services','fleet','packages','routes'];
   const showTour = group ? !!group.includeTour : true;
   tourSections.forEach(id=>{
@@ -504,6 +529,15 @@ function applyGroup(groupId, groups, replicaServices, push=true){
     if(el) el.classList.toggle('filtered-hidden', !showTour && groupId!==null);
   });
   // also hide replica about/why when filtered? keep them visible for context
+  // show/hide catalog and popular strip vs placeholder
+  const placeholder=document.getElementById('groupPlaceholder');
+  const catalog=document.getElementById('replicaCatalogWrap');
+  const popular=document.getElementById('popularStrip');
+  if(placeholder) placeholder.classList.add('hidden');
+  if(catalog) catalog.classList.remove('hidden');
+  if(popular) popular.classList.remove('hidden');
+  // animate catalog in
+  if(catalog){ catalog.style.opacity='0'; catalog.style.transform='translateY(8px)'; requestAnimationFrame(()=>{ catalog.style.transition='opacity .35s, transform .35s'; catalog.style.opacity='1'; catalog.style.transform='translateY(0)'; }); }
   // show active filter bar
   const bar=document.getElementById('activeFilterBar');
   const label=document.getElementById('activeFilterLabel');
@@ -514,7 +548,24 @@ function applyGroup(groupId, groups, replicaServices, push=true){
     if(link && group) link.href=`services/${group.id}.html`;
     else if(link) link.href='services/index.html';
   }
-  // also hide group chooser? keep it visible but de-emphasize
+  // glassy floating bar for dedicated page hint
+  let floatBar=document.getElementById('glassFloatBar');
+  if(!floatBar && group){
+    floatBar=document.createElement('div');
+    floatBar.id='glassFloatBar';
+    floatBar.className='glass-float-bar';
+    floatBar.innerHTML=`<span style="font-weight:800">${group.icon} ${group.title}</span><a href="services/${group.id}.html" style="background:var(--primary);color:white">Open page →</a><button onclick="this.parentElement.classList.add('hidden')" style="background:var(--surface-elevated)">✕</button>`;
+    document.body.appendChild(floatBar);
+    // auto-hide after 4s, show on scroll up
+    setTimeout(()=> floatBar.classList.add('hidden'), 4000);
+    let lastY=window.scrollY;
+    window.addEventListener('scroll', ()=>{
+      const goingUp=window.scrollY < lastY;
+      if(goingUp) floatBar.classList.remove('hidden');
+      else if(window.scrollY>200) floatBar.classList.add('hidden');
+      lastY=window.scrollY;
+    }, {passive:true});
+  }
   // push state
   if(push){
     const url=new URL(location.href);
@@ -526,8 +577,6 @@ function applyGroup(groupId, groups, replicaServices, push=true){
   }
   // store globally for clear
   window._groups=groups; window._replicaServices=replicaServices;
-  // update popular strip filter as well
-  document.getElementById('replicaCatalogWrap')?.scrollIntoView({behavior:'smooth'});
 }
 function clearGroup(groups, replicaServices, push=true){
   // If we're on a dedicated group page (/services/<id>.html), go back to home
@@ -537,11 +586,25 @@ function clearGroup(groups, replicaServices, push=true){
   }
   _activeGroup=null;
   document.querySelectorAll('.group-card').forEach(c=>{ c.classList.remove('active'); c.removeAttribute('aria-pressed'); });
-  // restore full replica render
-  renderReplicaServices(replicaServices);
+  // restore: hide catalog, show placeholder, show all sections
+  const placeholder=document.getElementById('groupPlaceholder');
+  const catalog=document.getElementById('replicaCatalogWrap');
+  const popular=document.getElementById('popularStrip');
+  if(placeholder) placeholder.classList.remove('hidden');
+  if(catalog) catalog.classList.add('hidden');
+  if(popular) popular.classList.add('hidden');
   document.querySelectorAll('.filtered-hidden').forEach(el=>el.classList.remove('filtered-hidden'));
+  // for home clean view, hide tour sections again until Travel chosen? Keep them visible on clear? Spec says home should show groups overview, not scattered tours – so hide tours until travel
+  const tourSections=['services','fleet','packages','routes'];
+  tourSections.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.add('filtered-hidden');
+  });
+  // but keep catalog hidden, popular hidden
   const bar=document.getElementById('activeFilterBar');
   if(bar) bar.classList.add('hidden');
+  const floatBar=document.getElementById('glassFloatBar');
+  if(floatBar) floatBar.classList.add('hidden');
   if(push){
     const url=new URL(location.href);
     url.searchParams.delete('group');
