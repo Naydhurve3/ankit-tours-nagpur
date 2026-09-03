@@ -1,5 +1,5 @@
-let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[]};
-let currentTab = "fleet";
+let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[], serviceGroups:[]};
+let currentTab = "overview";
 let useApi = false;
 let authenticated = false;
 
@@ -12,15 +12,17 @@ async function checkApi(){
 }
 async function loadFromApi(){
   try{
-    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings] = await Promise.all([
+    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups] = await Promise.all([
       fetch('/api/fleet').then(r=>r.json()),
       fetch('/api/packages').then(r=>r.json()),
       fetch('/api/gallery').then(r=>r.json()),
       fetch('/api/testimonials').then(r=>r.json()),
       fetch('/assets/data/replica-services.json').then(r=>r.json()),
-      fetch('/api/service-settings').then(r=>r.ok?r.json():[])
+      fetch('/api/service-settings').then(r=>r.ok?r.json():[]),
+      fetch('/api/service-groups').then(r=>r.ok?r.json():[])
     ]);
-    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings};
+    // also try public groups fallback if owner fetch fails due to auth (should be authed at this point)
+    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups};
   }catch(e){ return null;}
 }
 async function checkSession(){
@@ -129,16 +131,89 @@ function toast(msg){
 
 function render(){
   const panel = document.getElementById("panel");
+  if(currentTab==="overview") panel.innerHTML = renderOverviewAdmin();
+  if(currentTab==="service-groups") panel.innerHTML = renderServiceGroupsAdmin();
   if(currentTab==="fleet") panel.innerHTML = renderFleetAdmin();
   if(currentTab==="packages") panel.innerHTML = renderPackagesAdmin();
   if(currentTab==="service-pricing") panel.innerHTML = renderServicePricingAdmin();
   if(currentTab==="gallery") panel.innerHTML = renderGalleryAdmin();
   if(currentTab==="testimonials") panel.innerHTML = renderTestimonialsAdmin();
-  if(currentTab==="drivers") panel.innerHTML = renderDriversAdmin();
   if(currentTab==="bookings") panel.innerHTML = renderBookingsAdmin();
   bindAdminEvents();
 }
 
+function renderOverviewAdmin(){
+  const visibleGroups=(data.serviceGroups||[]).filter(g=>g.visible && g.status==='published').length;
+  const hiddenGroups=(data.serviceGroups||[]).length - visibleGroups;
+  const fleetVisible=(data.fleet||[]).filter(f=>f.visible!==false).length;
+  const pendingBookings=(data.bookings?.length||0); // bookings not loaded yet but placeholder
+  return `
+    <h3>Overview — Live Public View</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0">
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${visibleGroups}</b><br><span class="small muted">Groups visible</span><br><small>${hiddenGroups} hidden/draft</small></div>
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${fleetVisible}/${(data.fleet||[]).length}</b><br><span class="small muted">Vehicles visible</span></div>
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${(data.packages||[]).filter(p=>p.visible!==false).length}</b><br><span class="small muted">Packages visible</span></div>
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">EN+मराठी</b><br><span class="small muted">Bilingual live</span><br><small>Hub theme</small></div>
+    </div>
+    <div class="panel" style="background:var(--surface-elevated);border-style:dashed">
+      <h4 style="color:var(--primary)">Quick actions</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn-sm primary" onclick="document.querySelector('[data-tab=\\'service-groups\\']').click()">Manage Groups →</button>
+        <button class="btn-sm" onclick="document.querySelector('[data-tab=\\'service-pricing\\']').click()">Edit Service Prices →</button>
+        <button class="btn-sm" onclick="document.querySelector('[data-tab=\\'fleet\\']').click()">Update Fleet →</button>
+        <button class="btn-sm" onclick="window.open('/','_blank')">View Home ↗</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Tip: Hiding a group removes it from homepage and navigation but keeps drafts via API, search, sitemap hidden. Change price display mode to <b>quote / exact / from / range</b> — public shows formatted, not raw input.</p>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <h4 style="color:var(--primary)">What public sees now</h4>
+      <p class="small muted">Only <code>visible && status=published</code> groups appear on homepage as 4 cards. Pinned services appear first. Example: Travel group “${(data.serviceGroups.find(g=>g.id==='travel')?.replicaIds||[]).length} replica cats + 6 tours”.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${(data.serviceGroups||[]).map(g=>`<span class="badge ${g.visible&&g.status==='published'?'on':''}">${esc(g.icon||'')} ${esc(g.title)} ${g.visible&&g.status==='published'?'• Live':'• Hidden'}</span>`).join('')}</div>
+    </div>
+  `;
+}
+function renderServiceGroupsAdmin(){
+  if(!data.serviceGroups) data.serviceGroups=[];
+  return `
+    <h3>Service Groups — Homepage 4 Cards ${useApi?'<span class="badge on">Neon DB</span>':''}</h3>
+    <p class="small muted">Control what appears on the hub homepage. Only <b>visible + published</b> groups show as the 4 primary cards. Drag order → homepage order. Hide keeps drafts out of public API/search/sitemap.</p>
+    <div class="list" style="margin-top:14px">
+      ${data.serviceGroups.map((g,i)=>`
+        <div class="item" style="grid-template-columns:42px 1fr auto;align-items:start">
+          <div class="group-icon" style="width:42px;height:42px;display:grid;place-items:center;background:color-mix(in srgb, ${g.color||'#0F4C81'} 14%, var(--surface-elevated));border-radius:12px;font-size:20px">${g.icon||'•'}</div>
+          <div style="display:grid;gap:8px;min-width:0">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <input class="field" data-gfield="title" data-id="${g.id}" value="${esc(g.title||'')}" placeholder="Title EN">
+              <input class="field" data-gfield="title_mr" data-id="${g.id}" value="${esc(g.title_mr||'')}" placeholder="Title मराठी">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <input class="field" data-gfield="description" data-id="${g.id}" value="${esc(g.description||'')}" placeholder="Short description EN">
+              <input class="field" data-gfield="description_mr" data-id="${g.id}" value="${esc(g.description_mr||'')}" placeholder="Short description मराठी">
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input class="field" data-gfield="icon" data-id="${g.id}" value="${esc(g.icon||'')}" placeholder="Icon" style="max-width:70px">
+              <label class="color-field" style="min-width:0">Color <input type="color" data-gfield="color" data-id="${g.id}" value="${/^#[0-9a-f]{6}$/i.test(g.color||'')?g.color:'#0F4C81'}"></label>
+              <select class="field" data-gfield="status" data-id="${g.id}" style="max-width:120px"><option value="published" ${g.status==='published'?'selected':''}>Published</option><option value="draft" ${g.status==='draft'?'selected':''}>Draft</option><option value="archived" ${g.status==='archived'?'selected':''}>Archived</option></select>
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700"><input type="checkbox" data-gfield="visible" data-id="${g.id}" ${g.visible!==false?'checked':''}> Visible</label>
+              <input class="field" data-gfield="sort_order" data-id="${g.id}" type="number" value="${g.sort_order||i}" style="max-width:80px" placeholder="Order">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-gfield="include_tour" data-id="${g.id}" ${g.include_tour?'checked':''}> Include tours</label>
+            </div>
+            <div class="small muted">Slug: <code>${esc(g.slug||g.id)}</code> • IDs: ${(g.replica_ids||[]).join(', ')||'—'} <button class="btn-sm" style="margin-left:8px" onclick="editGroupIds('${g.id}')">Edit IDs</button></div>
+          </div>
+          <div class="item-actions" style="display:grid;gap:6px">
+            <button class="btn-sm primary" onclick="saveGroup('${g.id}')">Save</button>
+            <button class="icon-btn" title="Move up" onclick="moveGroup('${g.id}',-1)">↑</button>
+            <button class="icon-btn" title="Move down" onclick="moveGroup('${g.id}',1)">↓</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-sm primary" onclick="addGroup()">+ Add Group</button>
+      <span class="hint">Tip: Hide a group to remove it from homepage/navigation. Public API filters <code>visible && status=published</code>.</span>
+    </div>
+  `;
+}
 function renderFleetAdmin(){
   return `
     <h3>Fleet - Add / Hide / Remove ${useApi?'<span class="badge on">Neon DB</span>':'<span class="badge">Local</span>'}</h3>
@@ -366,3 +441,79 @@ async function addTesti(){
 }
 async function toggleTesti(i, id){ if(useApi&&id){ const cur=data.testimonials[i]; const r=await fetch('/api/testimonials',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cur, visible:!cur.visible})}); if(r.ok) data.testimonials[i]=await r.json(); render(); } else { data.testimonials[i].visible = data.testimonials[i].visible===false?true:false; saveLocal(data); render(); } }
 async function delTesti(i, id){ if(useApi&&id) await fetch('/api/testimonials?id='+id,{method:'DELETE'}); data.testimonials.splice(i,1); if(!useApi) saveLocal(data); render(); }
+
+// Service Groups management
+function collectGroupFields(id){
+  const get=(field)=>document.querySelector(`[data-gfield="${field}"][data-id="${id}"]`);
+  const val=(field, isCheck=false)=>{
+    const el=get(field);
+    if(!el) return null;
+    if(isCheck) return el.checked;
+    return el.value;
+  };
+  return {
+    id,
+    slug: val('slug') || id,
+    title: val('title'),
+    title_mr: val('title_mr'),
+    icon: val('icon'),
+    description: val('description'),
+    description_mr: val('description_mr'),
+    color: val('color'),
+    theme_key: '', // derived from color
+    replica_ids: (()=>{ const cur=data.serviceGroups.find(g=>g.id===id); return cur?cur.replica_ids:[]; })(),
+    include_tour: !!val('include_tour', true),
+    sort_order: parseInt(val('sort_order'))||0,
+    visible: !!val('visible', true),
+    status: val('status')
+  };
+}
+async function saveGroup(id){
+  const payload=collectGroupFields(id);
+  if(!payload.title){ toast('Title required'); return; }
+  const res=await fetch('/api/service-groups',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!res.ok){ const j=await res.json().catch(()=>({})); toast(j.error||'Save failed'); return; }
+  const saved=await res.json();
+  const idx=data.serviceGroups.findIndex(g=>g.id===id);
+  if(idx>=0) data.serviceGroups[idx]=saved; else data.serviceGroups.push(saved);
+  // keep sorted
+  data.serviceGroups.sort((a,b)=> (a.sort_order||0)-(b.sort_order||0));
+  render(); toast('Group saved — homepage reflects visible+published only');
+}
+async function addGroup(){
+  const id=prompt('New group id (slug, e.g., travel):');
+  if(!id) return;
+  const title=prompt('Title EN:')||id;
+  const res=await fetch('/api/service-groups',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id, slug:id, title, visible:true, status:'draft', sort_order: (data.serviceGroups.length), replica_ids:[]})});
+  if(!res.ok){ toast('Add failed'); return; }
+  const saved=await res.json();
+  data.serviceGroups.push(saved);
+  render(); toast('Group added as draft');
+}
+function editGroupIds(id){
+  const cur=data.serviceGroups.find(g=>g.id===id);
+  const current=(cur?.replica_ids||[]).join(', ');
+  const inp=prompt('Replica IDs comma-separated (e.g., banking,aadhaar,pan). Valid IDs: '+ (data.serviceCatalog?.map(c=>c.id).join(', ')||'...'), current);
+  if(inp===null) return;
+  const ids=inp.split(',').map(s=>s.trim()).filter(Boolean);
+  cur.replica_ids=ids;
+  // persist via PUT
+  saveGroup(id);
+}
+async function moveGroup(id, dir){
+  const idx=data.serviceGroups.findIndex(g=>g.id===id);
+  if(idx<0) return;
+  const nidx=idx+dir;
+  if(nidx<0 || nidx>=data.serviceGroups.length) return;
+  // swap sort_order
+  const a=data.serviceGroups[idx], b=data.serviceGroups[nidx];
+  const tmp=a.sort_order; a.sort_order=b.sort_order; b.sort_order=tmp;
+  // swap in array for immediate visual
+  data.serviceGroups[idx]=b; data.serviceGroups[nidx]=a;
+  // persist both
+  await Promise.all([
+    fetch('/api/service-groups',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(a)}),
+    fetch('/api/service-groups',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)})
+  ]);
+  render();
+}

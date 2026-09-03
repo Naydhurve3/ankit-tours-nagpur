@@ -20,6 +20,18 @@ async function run(){
   await sql`CREATE TABLE IF NOT EXISTS booking_assignments (id SERIAL PRIMARY KEY, booking_id INT REFERENCES bookings(id), vehicle_id INT REFERENCES fleet(id), driver_id INT REFERENCES drivers(id), start_at TIMESTAMPTZ, end_at TIMESTAMPTZ, status TEXT DEFAULT 'assigned', assigned_by TEXT, created_at TIMESTAMPTZ DEFAULT now())`;
   await sql`CREATE TABLE IF NOT EXISTS trip_access_tokens (id SERIAL PRIMARY KEY, booking_id INT REFERENCES bookings(id), token_hash TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL, revoked_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT now())`;
   await sql`CREATE TABLE IF NOT EXISTS service_settings (service_id TEXT PRIMARY KEY, price TEXT DEFAULT '', price_note TEXT DEFAULT '', pinned BOOLEAN DEFAULT false, visible BOOLEAN DEFAULT true, updated_at TIMESTAMPTZ DEFAULT now())`;
+  await sql`CREATE TABLE IF NOT EXISTS service_groups (id TEXT PRIMARY KEY, slug TEXT UNIQUE, title TEXT NOT NULL, title_mr TEXT, icon TEXT, description TEXT, description_mr TEXT, color TEXT, theme_key TEXT, replica_ids JSONB DEFAULT '[]', include_tour BOOLEAN DEFAULT false, sort_order INT DEFAULT 0, visible BOOLEAN DEFAULT true, status TEXT DEFAULT 'published', created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())`;
+  // migrations for existing DBs
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS title_mr TEXT`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS description TEXT`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS description_mr TEXT`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS color TEXT`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS theme_key TEXT`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS replica_ids JSONB DEFAULT '[]'`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS include_tour BOOLEAN DEFAULT false`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS visible BOOLEAN DEFAULT true`; }catch{}
+  try{ await sql`ALTER TABLE service_groups ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'published'`; }catch{}
   // add columns if old DB: ensure bookings has new cols (ignore if exists - postgres will error if duplicate, so use DO)
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new'`; }catch{}
   try{ await sql`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS pickup TEXT`; }catch{}
@@ -29,6 +41,17 @@ async function run(){
   try{ await sql`ALTER TABLE fleet ADD COLUMN IF NOT EXISTS vehicle_type TEXT DEFAULT 'suv'`; }catch{}
   console.log('Tables created (including drivers/audit/sessions)');
 
+  // seed service_groups if empty
+  const groupCount = await sql`SELECT COUNT(*) as c FROM service_groups`;
+  if(parseInt(groupCount[0].c)===0){
+    console.log('Seeding service_groups...');
+    const groups = JSON.parse(fs.readFileSync('assets/data/service-groups.json','utf8'));
+    for(let i=0;i<groups.length;i++){
+      const g=groups[i];
+      await sql`INSERT INTO service_groups (id, slug, title, title_mr, icon, description, description_mr, color, theme_key, replica_ids, include_tour, sort_order, visible, status) VALUES (${g.id}, ${g.slug||g.id}, ${g.title}, ${g.titleMr||''}, ${g.icon||''}, ${g.desc||''}, ${g.descMr||''}, ${g.color||'#0F4C81'}, ${g.themeKey||''}, ${JSON.stringify(g.replicaIds||[])}, ${!!g.includeTour}, ${g.sort_order||i}, ${g.visible!==false}, ${g.status||'published'})`;
+    }
+    console.log('Seeded groups', groups.length);
+  }
   // seed if empty
   const fleetCount = await sql`SELECT COUNT(*) as c FROM fleet`;
   if (parseInt(fleetCount[0].c)===0){

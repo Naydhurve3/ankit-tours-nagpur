@@ -425,6 +425,14 @@ function setupOnlineServiceDialog(services,setMenu){
 }
 
 async function loadServiceGroups(){
+  // Prefer live DB (public) for owner-edited visibility/order, fallback to static seed
+  try{
+    const r=await fetch('/api/service-groups?public=true');
+    if(r.ok){
+      const j=await r.json();
+      if(Array.isArray(j) && j.length) return j;
+    }
+  }catch{}
   const j=await fetchJsonWithFallback(['/assets/data/service-groups.json','assets/data/service-groups.json','../assets/data/service-groups.json']);
   return Array.isArray(j)?j:[];
 }
@@ -435,11 +443,13 @@ function renderServiceGroups(groups, replicaServices){
     const count = g.replicaIds ? replicaServices.filter(s=> g.replicaIds.includes(s.id)).length : 0;
     const tourCount = g.includeTour ? 6 : 0;
     const total = count + tourCount;
+    const titleMr = g.title_mr ? `<span class="marathi-copy" lang="mr" style="display:block;font-size:11px;color:var(--muted)">${esc(g.title_mr)}</span>` : '';
+    const descMr = g.description_mr ? `<span class="marathi-copy" lang="mr" style="display:block;font-size:11px;color:var(--muted)">${esc(g.description_mr)}</span>` : '';
     return `<div class="group-card" role="button" tabindex="0" data-group="${esc(g.id)}" style="--group-accent:${esc(g.color)}" aria-label="View ${esc(g.title)}">
       <div class="group-icon" style="background: color-mix(in srgb, ${esc(g.color)} 14%, var(--surface-elevated)); border-color: color-mix(in srgb, ${esc(g.color)} 22%, var(--border))">${esc(g.icon)}</div>
-      <div class="group-title">${esc(g.title)}</div>
-      <div class="group-desc">${esc(g.desc)}</div>
-      <small>${total} services</small>
+      <div class="group-title">${esc(g.title)}${titleMr}</div>
+      <div class="group-desc">${esc(g.description||g.desc||'')}${descMr}</div>
+      <small>${total} services • <span style="opacity:.6">Live</span></small>
       <span class="group-count">${total}</span>
       <button class="group-explore" type="button" data-explore="${esc(g.id)}" aria-label="Explore ${esc(g.title)} page">Explore →</button>
     </div>`;
