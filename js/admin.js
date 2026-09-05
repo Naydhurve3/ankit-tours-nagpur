@@ -1,4 +1,4 @@
-let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[], serviceGroups:[], customServices:[]};
+let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[], serviceGroups:[], customServices:[], drivers:[], bookings:[]};
 let currentTab = "overview";
 let useApi = false;
 let authenticated = false;
@@ -16,7 +16,7 @@ async function checkApi(){
 }
 async function loadFromApi(){
   try{
-    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups, customServices] = await Promise.all([
+    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups, customServices, drivers, bookings] = await Promise.all([
       fetch('/api/fleet').then(r=>r.json()),
       fetch('/api/packages').then(r=>r.json()),
       fetch('/api/gallery').then(r=>r.json()),
@@ -24,10 +24,11 @@ async function loadFromApi(){
       fetch('/assets/data/replica-services.json').then(r=>r.json()),
       fetch('/api/service-settings').then(r=>r.ok?r.json():[]),
       fetch('/api/service-groups').then(r=>r.ok?r.json():[]),
-      fetch('/api/custom-services?all=1').then(r=>r.ok?r.json():[])
+      fetch('/api/service-groups?kind=custom&all=1').then(r=>r.ok?r.json():[]),
+      fetch('/api/drivers').then(r=>r.ok?r.json():[]),
+      fetch('/api/bookings').then(r=>r.ok?r.json():[])
     ]);
-    // also try public groups fallback if owner fetch fails due to auth (should be authed at this point)
-    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups, customServices};
+    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups, customServices, drivers, bookings};
   }catch(e){ return null;}
 }
 async function checkSession(){
@@ -124,6 +125,25 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     toast("Reset done");
   });
   document.getElementById("viewPublicBtn").addEventListener("click", ()=> window.open("index.html","_blank"));
+
+  // F3.5 Quick search: Ctrl/Cmd+K, Esc to close, arrows + enter to navigate
+  document.addEventListener("keydown", e=>{
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); openQuickJump(); }
+    else if(e.key==="Escape"){ closeQuickJump(); }
+  });
+  const qjInput=document.getElementById("qjInput");
+  qjInput?.addEventListener("input", e=> renderQj(e.target.value));
+  const setActive=dir=>{
+    const all=[...document.querySelectorAll('.qj-item')];
+    const cur=document.querySelector('.qj-item.active');
+    let i=cur?all.indexOf(cur):-1; i=(i+dir+all.length)%all.length;
+    setActiveQj(i);
+  };
+  qjInput?.addEventListener("keydown", e=>{
+    if(e.key==="ArrowDown"){ e.preventDefault(); setActive(1); }
+    else if(e.key==="ArrowUp"){ e.preventDefault(); setActive(-1); }
+    else if(e.key==="Enter"){ e.preventDefault(); document.querySelector('.qj-item.active')?.click(); }
+  });
 });
 
 function toast(msg){
@@ -142,6 +162,7 @@ function render(){
   if(currentTab==="service-pricing") panel.innerHTML = renderServicePricingAdmin();
   if(currentTab==="gallery") panel.innerHTML = renderGalleryAdmin();
   if(currentTab==="testimonials") panel.innerHTML = renderTestimonialsAdmin();
+  if(currentTab==="drivers") panel.innerHTML = renderDriversAdmin();
   if(currentTab==="bookings") panel.innerHTML = renderBookingsAdmin();
   bindAdminEvents();
 }
@@ -150,7 +171,8 @@ function renderOverviewAdmin(){
   const visibleGroups=(data.serviceGroups||[]).filter(g=>g.visible && g.status==='published').length;
   const hiddenGroups=(data.serviceGroups||[]).length - visibleGroups;
   const fleetVisible=(data.fleet||[]).filter(f=>f.visible!==false).length;
-  const pendingBookings=(data.bookings?.length||0); // bookings not loaded yet but placeholder
+  const newBookings=(data.bookings||[]).filter(b=>b.status==='new').length;
+  const driversOn=(data.drivers||[]).filter(d=>d.active_status==='available'||d.active_status==='assigned').length;
   return `
     <h3>Overview — Live Public View</h3>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0">
@@ -158,7 +180,8 @@ function renderOverviewAdmin(){
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${fleetVisible}/${(data.fleet||[]).length}</b><br><span class="small muted">Vehicles visible</span></div>
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${(data.packages||[]).filter(p=>p.visible!==false).length}</b><br><span class="small muted">Packages visible</span></div>
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${(data.customServices||[]).filter(service=>service.visible!==false).length}</b><br><span class="small muted">Owner-created services</span></div>
-      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">EN+मराठी</b><br><span class="small muted">Bilingual live</span><br><small>Hub theme</small></div>
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${newBookings}</b><br><span class="small muted">New enquiries</span><br><small>${(data.bookings||[]).length} total</small></div>
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${driversOn}</b><br><span class="small muted">Drivers on duty</span><br><small>${(data.drivers||[]).length} total</small></div>
     </div>
     <div class="panel" style="background:var(--surface-elevated);border-style:dashed">
       <h4 style="color:var(--primary)">Quick actions</h4>
@@ -184,8 +207,9 @@ function renderServiceGroupsAdmin(){
     <p class="small muted">Control what appears on the hub homepage. Only <b>visible + published</b> groups show as the 4 primary cards. Drag order → homepage order. Hide keeps drafts out of public API/search/sitemap.</p>
     <div class="list" style="margin-top:14px">
       ${data.serviceGroups.map((g,i)=>`
-        <div class="item" style="grid-template-columns:42px 1fr auto;align-items:start">
-          <div class="group-icon" style="width:42px;height:42px;display:grid;place-items:center;background:color-mix(in srgb, ${g.color||'#0F4C81'} 14%, var(--surface-elevated));border-radius:12px;font-size:20px">${g.icon||'•'}</div>
+        <div class="item" data-gid="${g.id}" draggable="true" style="grid-template-columns:30px 42px 1fr auto;align-items:start">
+          <div class="drag-handle" title="Drag to reorder" aria-label="Drag to reorder">⠿</div>
+          <div class="group-icon" style="width:42px;height:42px;display:grid;place-items:center;background:color-mix(in srgb, ${g.color||'#0F4C81'} 14%, var(--surface-elevated));border-radius:12px;font-size:20px">${esc(g.icon||'•')}</div>
           <div style="display:grid;gap:8px;min-width:0">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
               <input class="field" data-gfield="title" data-id="${g.id}" value="${esc(g.title||'')}" placeholder="Title EN">
@@ -329,13 +353,92 @@ function renderTestimonialsAdmin(){
     `).join("")}</div>
   `;
 }
-function renderDriversAdmin(){ return `<h3>Drivers</h3><p class="small muted">Driver management requires Neon migration - see backlog 23. Coming after auth stabilisation.</p>`; }
-function renderBookingsAdmin(){ return `<h3>Bookings</h3><p class="small muted">Bookings list is now protected. Fetch via authenticated GET /api/bookings.</p>`; }
+function renderDriversAdmin(){
+  return `
+    <h3>Drivers ${useApi?'<span class="badge on">Neon DB</span>':'<span class="badge">Local</span>'}</h3>
+    <div class="toolbar">
+      <input id="d_code" class="field" placeholder="Internal code" style="max-width:130px">
+      <input id="d_legal" class="field" placeholder="Legal name (required)" style="flex:1.4">
+      <input id="d_display" class="field" placeholder="Display name" style="flex:1">
+      <input id="d_phone" class="field" placeholder="Phone" style="max-width:150px">
+    </div>
+    <div class="toolbar">
+      <input id="d_langs" class="field" placeholder="Languages e.g. Marathi, Hindi, English">
+      <input id="d_exp" class="field" type="number" min="0" placeholder="Years experience" style="max-width:150px">
+      <input id="d_vehicles" class="field" placeholder="Eligible vehicles e.g. SUV, Traveller">
+      <select id="d_status" class="field" style="max-width:170px"><option value="available">Available</option><option value="assigned">Assigned</option><option value="off">Off duty</option></select>
+    </div>
+    <div class="toolbar">
+      <div class="upload-chip">
+        <button type="button" onclick="pickImage('d_photo_file','d_photo','d_photo_preview')">📷 Upload photo</button>
+        <input id="d_photo_file" type="file" accept="image/*" style="display:none" onchange="readPicked('d_photo_file','d_photo','d_photo_preview')">
+        <img id="d_photo_preview" alt="Photo preview">
+      </div>
+      <button class="btn-sm primary" onclick="addDriver()">+ Add Driver</button>
+      <span class="hint">Photos compress to ~300 KB base64, stored in Neon. Public site shows only Available / Assigned drivers.</span>
+    </div>
+    <div class="list" style="margin-top:12px">${(data.drivers||[]).length===0?'<div class="admin-empty"><b>No drivers yet</b><span>Add your first driver above.</span></div>':(data.drivers||[]).map(d=>`
+      <div class="item" style="grid-template-columns:52px 1fr auto">
+        ${d.photo_url?`<img class="driver-photo" src="${esc(d.photo_url)}" alt="">`:`<span class="driver-photo" style="display:grid;place-items:center;font-size:20px">👤</span>`}
+        <div>
+          <b>${esc(d.legal_name)}</b>${d.display_name?` <span class="small muted">(${esc(d.display_name)})</span>`:''} <span class="badge ${d.active_status!=='off'?'on':''}">${esc(d.active_status||'available')}</span><br>
+          <span class="small muted">${[d.phone,d.languages,d.experience_years?d.experience_years+' yrs':'',d.eligible_vehicles].filter(Boolean).join(' • ')||'No contact info'}</span><br>
+          <span class="small muted">${d.internal_code?'Code '+esc(d.internal_code)+' • ':''}Added ${d.created_at?new Date(d.created_at).toLocaleDateString():'—'}</span>
+        </div>
+        <div class="item-actions" style="align-items:center">
+          <select class="field status" onchange="setDriverStatus(${d.id}, this.value)"><option value="available" ${d.active_status==='available'?'selected':''}>Available</option><option value="assigned" ${d.active_status==='assigned'?'selected':''}>Assigned</option><option value="off" ${d.active_status==='off'?'selected':''}>Off duty</option></select>
+          <button class="btn-sm" onclick="editDriver(${d.id})">Edit</button>
+          <button class="icon-btn danger" onclick="deleteDriver(${d.id})">✕</button>
+        </div>
+      </div>`).join('')}</div>
+  `;
+}
+function renderBookingsAdmin(){
+  const rows=data.bookings||[];
+  const counts={new:rows.filter(b=>b.status==='new').length,confirmed:rows.filter(b=>b.status==='confirmed').length,done:rows.filter(b=>b.status==='done').length,cancelled:rows.filter(b=>b.status==='cancelled').length};
+  return `
+    <h3>Enquiries & Bookings ${useApi?'<span class="badge on">Neon DB</span>':''}</h3>
+    <div class="toolbar">
+      <select id="b_filter" class="field" onchange="filterBookings(this.value)" style="max-width:180px">
+        <option value="all">All statuses</option><option value="new">New</option><option value="confirmed">Confirmed</option><option value="done">Completed</option><option value="cancelled">Cancelled</option>
+      </select>
+      <button class="btn-sm" onclick="refreshBookings()">↻ Refresh</button>
+      <span class="hint">Enquiries arrive from public booking forms. Update status as you respond.</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><b>${counts.new}</b><br><span class="small muted">New</span></div>
+      <div class="stat-card"><b>${counts.confirmed}</b><br><span class="small muted">Confirmed</span></div>
+      <div class="stat-card"><b>${counts.done}</b><br><span class="small muted">Completed</span></div>
+      <div class="stat-card"><b>${counts.cancelled}</b><br><span class="small muted">Cancelled</span></div>
+    </div>
+    <div class="list">${rows.length===0?'<div class="admin-empty"><b>No enquiries yet</b><span>Public enquiry forms will appear here.</span></div>':rows.map(b=>`
+      <div class="item booking-item" data-bstatus="${b.status||'new'}">
+        <div>
+          <b>${esc(b.name)}</b> <span class="status-chip ${b.status||'new'}">${b.status||'new'}</span> <span class="small muted">REF ATT-${String(b.id).padStart(5,'0')}</span><br>
+          <div class="booking-meta"><span>📞 ${esc(b.phone)}</span>${b.date?`<span>📅 ${esc(b.date)}</span>`:''}${b.service?`<span>🧾 ${esc(b.service)}</span>`:''}${b.source?`<span>🔎 ${esc(b.source)}</span>`:''}${b.created_at?`<span>⏱ ${new Date(b.created_at).toLocaleString()}</span>`:''}</div>
+          ${(b.pickup||b.destination)?`<div class="small muted" style="margin-top:4px">${b.pickup?'From: '+esc(b.pickup):''}${b.pickup&&b.destination?' → ':''}${b.destination?'To: '+esc(b.destination):''}${b.passengers?' • '+b.passengers+' pax':''}</div>`:''}
+          ${b.message?`<div class="small" style="margin-top:6px;border-left:3px solid var(--border);padding-left:8px">${esc(b.message)}</div>`:''}
+        </div>
+        <div class="item-actions" style="align-items:center">
+          <select class="field status" onchange="setBookingStatus(${b.id}, this.value)"><option value="new" ${b.status==='new'?'selected':''}>New</option><option value="confirmed" ${b.status==='confirmed'?'selected':''}>Confirmed</option><option value="done" ${b.status==='done'?'selected':''}>Completed</option><option value="cancelled" ${b.status==='cancelled'?'selected':''}>Cancelled</option></select>
+        </div>
+      </div>`).join('')}</div>
+  `;
+}
 
 function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+const esc=escapeHtml;
 
 function bindAdminEvents(){
   document.getElementById('serviceAdminSearch')?.addEventListener('input',event=>{const query=event.target.value.trim().toLowerCase();document.querySelectorAll('.service-setting-row').forEach(row=>row.classList.toggle('hidden',query&&!row.dataset.search.includes(query)))});
+  // F3.4 service group drag-and-drop reorder
+  document.querySelectorAll('.item[data-gid]').forEach(el=>{
+    el.addEventListener('dragstart',e=>{ dragId=el.dataset.gid; el.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',el.dataset.gid); });
+    el.addEventListener('dragend',()=>{ el.classList.remove('dragging'); document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over')); dragId=null; });
+    el.addEventListener('dragover',e=>{ e.preventDefault(); el.classList.add('drag-over'); });
+    el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
+    el.addEventListener('drop',e=>{ e.preventDefault(); el.classList.remove('drag-over'); const to=el.dataset.gid; if(dragId&&to&&dragId!==to) reorderGroups(dragId,to); dragId=null; });
+  });
 }
 
 async function saveServicePrice(id){
@@ -365,13 +468,13 @@ async function addCustomService(){
   const payload={category_id:document.getElementById('cs_category').value,name_en:document.getElementById('cs_name_en').value.trim(),name_mr:document.getElementById('cs_name_mr').value.trim(),price:document.getElementById('cs_price').value.trim(),price_note:document.getElementById('cs_note').value.trim(),sort_order:Number(document.getElementById('cs_order').value)||0,pinned:document.getElementById('cs_pinned').checked,visible:document.getElementById('cs_visible').checked};
   if(!payload.category_id||!payload.name_en||!payload.name_mr){toast('Choose a group and enter English and Marathi names');return;}
   if(!useApi){toast('Server connection is required to publish a new service');return;}
-  const response=await fetch('/api/custom-services',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const result=await response.json().catch(()=>({}));
+  const response=await fetch('/api/service-groups?kind=custom',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const result=await response.json().catch(()=>({}));
   if(!response.ok){toast(result.error||'Could not add service');return;}data.customServices.push(result);render();toast('New service published');
 }
 
 async function updateCustomService(id,changes){
   const current=(data.customServices||[]).find(service=>service.id===id);if(!current)return;
-  const response=await fetch('/api/custom-services',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...current,...changes})});const result=await response.json().catch(()=>({}));
+  const response=await fetch('/api/service-groups?kind=custom',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...current,...changes})});const result=await response.json().catch(()=>({}));
   if(!response.ok){toast(result.error||'Update failed');return;}data.customServices[data.customServices.findIndex(service=>service.id===id)]=result;render();toast('Service updated');
 }
 
@@ -387,7 +490,7 @@ async function editCustomService(id){
 
 async function deleteCustomService(id){
   if(!confirm('Delete this service permanently? Hide it if it may return later.'))return;
-  const response=await fetch('/api/custom-services?id='+encodeURIComponent(id),{method:'DELETE'});if(!response.ok){toast('Delete failed');return;}
+  const response=await fetch('/api/service-groups?kind=custom&id='+encodeURIComponent(id),{method:'DELETE'});if(!response.ok){toast('Delete failed');return;}
   data.customServices=data.customServices.filter(service=>service.id!==id);render();toast('Service deleted');
 }
 
@@ -479,6 +582,143 @@ async function addTesti(){
 }
 async function toggleTesti(i, id){ if(useApi&&id){ const cur=data.testimonials[i]; const r=await fetch('/api/testimonials',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cur, visible:!cur.visible})}); if(r.ok) data.testimonials[i]=await r.json(); render(); } else { data.testimonials[i].visible = data.testimonials[i].visible===false?true:false; saveLocal(data); render(); } }
 async function delTesti(i, id){ if(useApi&&id) await fetch('/api/testimonials?id='+id,{method:'DELETE'}); data.testimonials.splice(i,1); if(!useApi) saveLocal(data); render(); }
+
+// F3.2 Drivers CRUD
+async function addDriver(){
+  const legal=document.getElementById('d_legal').value.trim();
+  if(!legal){ toast('Legal name is required'); return; }
+  if(!useApi){ toast('Server connection is required to publish drivers'); return; }
+  showBusy();
+  const payload={internal_code:document.getElementById('d_code').value.trim(),legal_name:legal,display_name:document.getElementById('d_display').value.trim(),phone:document.getElementById('d_phone').value.trim(),photo_url:document.getElementById('d_photo').value,alternate_phone:'',languages:document.getElementById('d_langs').value.trim(),experience_years:parseInt(document.getElementById('d_exp').value)||null,eligible_vehicles:document.getElementById('d_vehicles').value.trim(),active_status:document.getElementById('d_status').value,notes:''};
+  const res=await fetch('/api/drivers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  hideBusy();
+  if(!res.ok){ const j=await res.json().catch(()=>({})); toast(j.error||'Could not add driver'); return; }
+  data.drivers.unshift(await res.json());
+  ['d_code','d_legal','d_display','d_phone','d_langs','d_exp','d_vehicles'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('d_photo').value='';const pv=document.getElementById('d_photo_preview');if(pv)pv.removeAttribute('src');
+  render(); toast('Driver added');
+}
+async function setDriverStatus(id, status){
+  const cur=(data.drivers||[]).find(d=>d.id===id); if(!cur) return;
+  if(useApi){
+    const res=await fetch('/api/drivers',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cur, active_status:status})});
+    if(!res.ok){ toast('Status update failed'); return; }
+    data.drivers[data.drivers.findIndex(d=>d.id===id)]=await res.json();
+  } else { cur.active_status=status; saveLocal(data); }
+  render(); toast('Driver status: '+status);
+}
+async function editDriver(id){
+  const cur=(data.drivers||[]).find(d=>d.id===id); if(!cur) return;
+  const display_name=prompt('Display name',cur.display_name||''); if(display_name===null) return;
+  const phone=prompt('Phone',cur.phone||''); if(phone===null) return;
+  const languages=prompt('Languages',cur.languages||''); if(languages===null) return;
+  const notes=prompt('Notes',cur.notes||''); if(notes===null) return;
+  const payload={...cur,display_name:display_name.trim(),phone:phone.trim(),languages:languages.trim(),notes:notes.trim()};
+  if(useApi){
+    showBusy();
+    const res=await fetch('/api/drivers',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    hideBusy();
+    if(!res.ok){ toast('Update failed'); return; }
+    data.drivers[data.drivers.findIndex(d=>d.id===id)]=await res.json();
+  } else { data.drivers[data.drivers.findIndex(d=>d.id===id)]=payload; saveLocal(data); }
+  render(); toast('Driver updated');
+}
+async function deleteDriver(id){
+  if(!confirm('Delete this driver permanently?')) return;
+  if(useApi){ const r=await fetch('/api/drivers?id='+id,{method:'DELETE'}); if(!r.ok){ toast('Delete failed'); return; } }
+  data.drivers=data.drivers.filter(d=>d.id!==id); if(!useApi) saveLocal(data); render(); toast('Driver deleted');
+}
+// F3.3 Bookings
+async function setBookingStatus(id, status){
+  if(!useApi){ toast('Neon connection required'); render(); return; }
+  showBusy();
+  const res=await fetch('/api/bookings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status})});
+  hideBusy();
+  if(!res.ok){ toast('Status update failed'); render(); return; }
+  const saved=await res.json();
+  const idx=data.bookings.findIndex(b=>b.id===id);
+  if(idx>=0) data.bookings[idx]=saved;
+  filterBookings(document.getElementById('b_filter')?.value||'all');
+  toast('Booking marked '+status);
+}
+async function refreshBookings(){
+  showBusy();
+  const res=await fetch('/api/bookings');
+  hideBusy();
+  if(res.ok){ data.bookings=await res.json(); filterBookings(document.getElementById('b_filter')?.value||'all'); toast('Bookings refreshed'); } else toast('Failed to load bookings');
+}
+function filterBookings(value){
+  document.querySelectorAll('[data-bstatus]').forEach(el=>el.classList.toggle('hidden',value!=='all'&&el.dataset.bstatus!==value));
+}
+// F3.4 Drag-and-drop reorder (service groups)
+let dragId=null;
+async function reorderGroups(fromId,toId){
+  const arr=data.serviceGroups;
+  const i=arr.findIndex(g=>g.id===fromId), j=arr.findIndex(g=>g.id===toId);
+  if(i<0||j<0) return;
+  const [moved]=arr.splice(i,1); arr.splice(j,0,moved);
+  arr.forEach((g,k)=>g.sort_order=k);
+  showBusy();
+  const results=await Promise.all(arr.map(g=>fetch('/api/service-groups',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(g)})));
+  hideBusy();
+  if(results.some(r=>!r.ok)){ toast('Some groups did not save order'); }
+  render(); toast('Group order saved');
+}
+// F3.5 Quick jump (Ctrl+K)
+function qjIndex(){
+  const items=[];
+  (data.serviceGroups||[]).forEach(g=>items.push({tab:'service-groups',icon:g.icon||'🧭',label:g.title||g.id,sub:g.id+(g.visible&&g.status==='published'?' • Live':' • Hidden')}));
+  (data.fleet||[]).forEach(f=>items.push({tab:'fleet',icon:'🚐',label:'Fleet · '+f.name,sub:(f.seating||'')+' • '+(f.price||'')}));
+  (data.packages||[]).forEach(p=>items.push({tab:'packages',icon:'💰',label:'Package · '+p.service,sub:(p.vehicle||'')+' • '+(p.price||'')}));
+  (data.customServices||[]).forEach(cs=>items.push({tab:'service-pricing',icon:'🧾',label:'Service · '+cs.name_en,sub:((data.serviceCatalog||[]).find(c=>c.id===cs.category_id)?.title||cs.category_id)+' • '+(cs.price||'')}));
+  (data.bookings||[]).forEach(b=>items.push({tab:'bookings',icon:'📋',label:'Booking · '+b.name,sub:b.phone+' • '+(b.status||'new')}));
+  (data.drivers||[]).forEach(d=>items.push({tab:'drivers',icon:'🚘',label:'Driver · '+(d.display_name||d.legal_name),sub:d.phone+' • '+(d.active_status||'')}));
+  [['overview','Overview','📊'],['service-groups','Groups','🧭'],['fleet','Fleet','🚐'],['packages','Packages','💰'],['service-pricing','Services & Pricing','🧾'],['gallery','Gallery','🖼️'],['testimonials','Reviews','⭐'],['drivers','Drivers','🚘'],['bookings','Bookings','📋']].forEach(t=>items.push({tab:t[0],icon:t[2],label:t[1],sub:'Section'}));
+  return items;
+}
+function renderQj(q){
+  const con=document.getElementById('qjResults'); if(!con) return;
+  const ql=q.trim().toLowerCase();
+  const items=qjIndex().filter(it=>!ql||(it.label+' '+it.sub).toLowerCase().includes(ql)).slice(0,40);
+  if(!items.length){ con.innerHTML='<div class="qj-empty">No matches for “'+esc(q)+'”</div>'; return; }
+  con.innerHTML=items.map((it,i)=>`<button class="qj-item" data-i="${i}" onclick="goQj('${it.tab}')"><span>${esc(it.icon)}</span><span style="min-width:0"><b>${esc(it.label)}</b><br><span style="overflow:hidden;text-overflow:ellipsis;display:block;max-width:380px;white-space:nowrap">${esc(it.sub)}</span></span><span class="qj-tab">${it.sub==='Section'?'Section':tabLabel(it.tab)}</span></button>`).join('');
+  con.querySelector('.qj-item')?.classList.add('active');
+}
+function tabLabel(tab){ const map={overview:'Overview',['service-groups']:'Groups',fleet:'Fleet',packages:'Packages',['service-pricing']:'Services & Pricing',gallery:'Gallery',testimonials:'Reviews',drivers:'Drivers',bookings:'Bookings'}; return map[tab]||tab; }
+function goQj(tab){ document.getElementById('quickJump')?.classList.add('hidden'); setActiveQj(0); document.querySelector(`.tab[data-tab="${tab}"]`)?.click(); }
+function setActiveQj(i){ const boxes=document.querySelectorAll('.qj-item'); if(!boxes.length) return; boxes.forEach(x=>x.classList.remove('active')); const el=boxes[Math.max(0,Math.min(i,boxes.length-1))]; el?.classList.add('active'); el?.scrollIntoView({block:'nearest'}); }
+function openQuickJump(){ const qj=document.getElementById('quickJump'); if(!qj) return; qj.classList.remove('hidden'); const inp=document.getElementById('qjInput'); if(inp){ inp.value=''; renderQj(''); openQuickJump._focus=setTimeout(()=>inp.focus(),30); } }
+function closeQuickJump(){ document.getElementById('quickJump')?.classList.add('hidden'); }
+// F3.6 Base64 image upload with preview
+function readPicked(inputId, destId, previewId){
+  const input=document.getElementById(inputId); const file=input?.files?.[0];
+  if(!file) return;
+  showBusy();
+  const img=new Image();
+  img.onload=()=>{
+    const maxDim=900;
+    let w=img.naturalWidth, h=img.naturalHeight;
+    const scale=Math.min(1,maxDim/Math.max(w,h));
+    w=Math.round(w*scale); h=Math.round(h*scale);
+    const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    let dataUrl=canvas.toDataURL('image/jpeg',0.82);
+    if(dataUrl.length>400000){ dataUrl=canvas.toDataURL('image/jpeg',0.6); }
+    if(dataUrl.length>400000){ const ctx=canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h); dataUrl=canvas.toDataURL('image/jpeg',0.72); }
+    hideBusy();
+    if(dataUrl.length>400000){ toast('Image too large after compression'); return; }
+    document.getElementById(destId).value=dataUrl;
+    const pv=document.getElementById(previewId); if(pv){ pv.setAttribute('src',dataUrl); pv.style.display=''; }
+    toast('Photo ready — save to publish');
+  };
+  img.onerror=()=>{ hideBusy(); toast('Could not read image'); };
+  const reader=new FileReader();
+  reader.onload=e=>img.src=e.target.result;
+  reader.readAsDataURL(file);
+}
+function pickImage(inputId, destId, previewId){ document.getElementById(inputId)?.click(); }
+function showBusy(){ document.getElementById('busy')?.classList.remove('hidden'); }
+function hideBusy(){ document.getElementById('busy')?.classList.add('hidden'); }
 
 // Service Groups management
 function collectGroupFields(id){

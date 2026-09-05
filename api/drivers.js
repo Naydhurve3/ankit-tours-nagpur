@@ -25,15 +25,15 @@ export default async function handler(req,res){
     if(req.method==='POST'){
       const {internal_code, legal_name, display_name, phone, alternate_phone, photo_url, languages, experience_years, eligible_vehicles, active_status, notes}=req.body||{};
       const ln=s(legal_name,80); if(!ln) return res.status(400).json({error:'legal_name required'});
-      if(photo_url && photo_url.startsWith('data:')) return res.status(400).json({error:'photo must be https URL'});
-      const rows=await sql`INSERT INTO drivers (internal_code, legal_name, display_name, phone, alternate_phone, photo_url, languages, experience_years, eligible_vehicles, active_status, notes) VALUES (${s(internal_code,20)}, ${ln}, ${s(display_name,60)}, ${s(phone,20)}, ${s(alternate_phone,20)}, ${s(photo_url,500)}, ${s(languages,100)}, ${parseInt(experience_years)||null}, ${s(eligible_vehicles,100)}, ${s(active_status||'available',20)}, ${s(notes,500)}) RETURNING *`;
+      if(photo_url && !/^(https?:\/\/|data:image\/(png|jpe?g|webp);base64,)/.test(photo_url)) return res.status(400).json({error:'photo must be https URL or base64 image'});
+      const rows=await sql`INSERT INTO drivers (internal_code, legal_name, display_name, phone, alternate_phone, photo_url, languages, experience_years, eligible_vehicles, active_status, notes) VALUES (${s(internal_code,20)}, ${ln}, ${s(display_name,60)}, ${s(phone,20)}, ${s(alternate_phone,20)}, ${s(photo_url,400000)}, ${s(languages,100)}, ${parseInt(experience_years)||null}, ${s(eligible_vehicles,100)}, ${s(active_status||'available',20)}, ${s(notes,500)}) RETURNING *`;
       await logAudit(sql,{event_type:'CREATE', entity_type:'drivers', entity_id:rows[0].id, after_json:rows[0], req});
       return res.status(201).json(rows[0]);
     }
     if(req.method==='PUT'){
       const {id, ...f}=req.body||{}; if(!id) return res.status(400).json({error:'id required'});
       const before=await sql`SELECT * FROM drivers WHERE id=${id} LIMIT 1`;
-      const rows=await sql`UPDATE drivers SET display_name=${s(f.display_name,60)}, phone=${s(f.phone,20)}, photo_url=${s(f.photo_url,500)}, languages=${s(f.languages,100)}, active_status=${s(f.active_status,20)}, notes=${s(f.notes,500)}, updated_at=now() WHERE id=${id} RETURNING *`;
+      const rows=await sql`UPDATE drivers SET display_name=${s(f.display_name,60)}, phone=${s(f.phone,20)}, photo_url=${s(f.photo_url,400000)}, languages=${s(f.languages,100)}, active_status=${s(f.active_status,20)}, notes=${s(f.notes,500)}, updated_at=now() WHERE id=${id} RETURNING *`;
       await logAudit(sql,{event_type:'UPDATE', entity_type:'drivers', entity_id:id, before_json:before[0], after_json:rows[0], req});
       return res.status(200).json(rows[0]);
     }

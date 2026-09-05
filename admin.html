@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Owner Portal - Ankit Tours & Travels</title>
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#F7F1E7">
+<meta name="theme-color" content="#edf2f5">
 <script>(function(){try{var v=localStorage.getItem('att_theme')||'light';var d=v==='dark'||(v==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()</script>
 <link rel="stylesheet" href="css/hub-home.css">
 <link rel="stylesheet" href="css/style.css">
@@ -46,6 +46,7 @@
       <button class="tab" data-tab="service-pricing">🧾 Services &amp; Pricing</button>
       <button class="tab" data-tab="gallery">🖼️ Gallery</button>
       <button class="tab" data-tab="testimonials">⭐ Reviews</button>
+      <button class="tab" data-tab="drivers">🚘 Drivers</button>
       <button class="tab" data-tab="bookings">📋 Bookings</button>
     </nav>
 
@@ -65,6 +66,16 @@
 </div>
 
 <div id="toast" class="hidden" style="position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0f4c81;color:white;padding:10px 16px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.2);font-weight:600;z-index:99"></div>
+
+<div id="busy" class="hidden" style="position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px)"><div class="busy-spinner" role="status" aria-label="Working"></div></div>
+
+<div id="quickJump" class="qj hidden" role="dialog" aria-label="Quick search">
+  <div class="qj-wrap">
+    <div class="qj-search"><span>⌕</span><input id="qjInput" type="search" placeholder="Search groups, fleet, services, bookings, drivers…  (↑↓ navigate, Enter open, Esc close)" autocomplete="off"></div>
+    <div id="qjResults" class="qj-results"></div>
+    <div class="qj-foot"><kbd>Ctrl</kbd>+<kbd>K</kbd> quick search</div>
+  </div>
+</div>
 
 <script src="js/theme.js"></script>
 <script src="js/data.js"></script>

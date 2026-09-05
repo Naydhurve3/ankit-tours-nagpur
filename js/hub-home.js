@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{loader?.classList.add('done');document.body.classList.remove('is-loading')},seen?280:1050);
   sessionStorage.setItem('replica_loader_seen','1');
   const menuButton=document.getElementById('menuButton'),menu=document.getElementById('mobileMenu');
-  const setMenu=open=>{if(!menu)return;menu.hidden=!open;menuButton?.setAttribute('aria-expanded',String(open));menuButton?.setAttribute('aria-label',open?'Close menu':'Open menu')};
+  const setMenu=open=>{if(!menu)return;menu.classList.toggle('open',open);menu.setAttribute('aria-hidden',String(!open));menuButton?.setAttribute('aria-expanded',String(open));menuButton?.setAttribute('aria-label',open?'Close menu':'Open menu')};
   menuButton?.addEventListener('click',()=>setMenu(menu.hidden));menu?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>setMenu(false)));document.addEventListener('click',e=>{if(!e.target.closest('.hub-header'))setMenu(false)});
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
   const toneSections=[['.hero','home'],['#services','services'],['#how','process'],['#about','community'],['#contact','contact']].map(([selector,tone])=>[document.querySelector(selector),tone]).filter(([element])=>element);

@@ -324,7 +324,7 @@ async function loadServiceSettings(){
 }
 
 async function loadCustomServices(){
-  try{const response=await fetch('/api/custom-services');if(response.ok)return await response.json();}catch{}
+  try{const response=await fetch('/api/service-groups?kind=custom');if(response.ok)return await response.json();}catch{}
   return [];
 }
 
