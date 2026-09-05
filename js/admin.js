@@ -5,8 +5,12 @@ let authenticated = false;
 
 async function checkApi(){
   try{
-    const r = await fetch('/api/health');
+    const r = await fetch('/api/service-groups?public=true');
     if(r.ok){ useApi = true; return true; }
+  }catch{}
+  try{
+    const r2 = await fetch('/api/fleet');
+    if(r2.ok){ useApi = true; return true; }
   }catch{}
   useApi=false; return false;
 }
