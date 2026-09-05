@@ -6,7 +6,7 @@
 <title>Owner Portal - Ankit Tours & Travels</title>
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F7F1E7">
-<script>(function(){try{var k='att_theme',v=localStorage.getItem(k);var s=v==='light'||v==='dark'?v:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
+<script>(function(){try{var v=localStorage.getItem('att_theme');document.documentElement.setAttribute('data-theme',v==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <link rel="stylesheet" href="css/hub-home.css">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/admin.css">
@@ -25,7 +25,7 @@
 
 <div id="dashboard" class="hidden">
   <div class="topbar">
-    <h1>★ Ankit Tours - Owner Portal</h1>
+    <div class="admin-brand"><img src="assets/brand/replica-click-lockup.png" alt="Replica Click"><div><h1>Owner Service Portal</h1><span>व्यवसाय व्यवस्थापन • Kondhali</span></div></div>
     <div class="topbar-actions">
       <button id="adminThemeToggle" class="theme-btn" aria-label="Switch theme" title="Switch theme">🌙</button>
       <select id="themeSelect" class="field" style="max-width:120px"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
@@ -38,16 +38,16 @@
   </div>
 
   <div class="admin-shell">
-    <div class="tabs">
+    <nav class="tabs" aria-label="Owner portal sections">
       <button class="tab active" data-tab="overview">📊 Overview</button>
       <button class="tab" data-tab="service-groups">🧭 Groups</button>
       <button class="tab" data-tab="fleet">🚐 Fleet</button>
       <button class="tab" data-tab="packages">💰 Packages</button>
-      <button class="tab" data-tab="service-pricing">📌 Services</button>
+      <button class="tab" data-tab="service-pricing">🧾 Services &amp; Pricing</button>
       <button class="tab" data-tab="gallery">🖼️ Gallery</button>
       <button class="tab" data-tab="testimonials">⭐ Reviews</button>
       <button class="tab" data-tab="bookings">📋 Bookings</button>
-    </div>
+    </nav>
 
     <div id="panel" class="panel"></div>
 

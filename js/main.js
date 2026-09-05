@@ -1,5 +1,7 @@
 // Main public logic
 document.addEventListener("DOMContentLoaded", async ()=>{
+  const route=location.pathname;
+  document.body.dataset.pageTone=route.startsWith('/travel')?'travel':route.startsWith('/banking')?'banking':route.startsWith('/print')?'printing':route.startsWith('/online')?'online':route.startsWith('/contact')?'contact':'neutral';
   // Branded loader: long enough to read, short enough to stay out of the way.
   const loader = document.getElementById("siteLoader");
   const loaderStarted = performance.now();
@@ -98,6 +100,15 @@ document.addEventListener("DOMContentLoaded", async ()=>{
 
   // Replica Click: grouped catalogue + dedicated group pages
   const replicaServices = await loadReplicaServices();
+  const customServices = await loadCustomServices();
+  customServices.forEach(item=>{
+    const category=replicaServices.find(service=>service.id===item.category_id);
+    if(!category)return;
+    category.items=[...(category.items||[]),item.name_en];
+    category.itemsMr=[...(category.itemsMr||[]),item.name_mr||''];
+    category.customIds=[...(category.customIds||[]),item.id];
+    category.customSettings={...(category.customSettings||{}),[item.id]:item};
+  });
   window._serviceSettings = await loadServiceSettings();
   const serviceGroups = await loadServiceGroups();
   window._groups=serviceGroups; window._replicaServices=replicaServices;
@@ -312,10 +323,18 @@ async function loadServiceSettings(){
   return {};
 }
 
+async function loadCustomServices(){
+  try{const response=await fetch('/api/custom-services');if(response.ok)return await response.json();}catch{}
+  return [];
+}
+
 function serviceItems(service){
   return (service.items||[]).map((label,index)=>{
-    const id=`${service.id}-${index+1}`;
-    return {id,label,labelMr:(service.itemsMr||[])[index]||'',setting:window._serviceSettings?.[id]||{}};
+    const customOffset=(service.items||[]).length-(service.customIds||[]).length;
+    const customId=index>=customOffset?(service.customIds||[])[index-customOffset]:null;
+    const id=customId?`custom-${customId}`:`${service.id}-${index+1}`;
+    const setting=customId?(service.customSettings?.[customId]||{}):(window._serviceSettings?.[id]||{});
+    return {id,label,labelMr:(service.itemsMr||[])[index]||'',setting};
   }).filter(item=>item.setting.visible!==false)
     .sort((a,b)=>Number(b.setting.pinned===true)-Number(a.setting.pinned===true));
 }

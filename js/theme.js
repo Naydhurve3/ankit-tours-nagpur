@@ -3,7 +3,7 @@
   const KEY = 'att_theme';
   const mql = window.matchMedia('(prefers-color-scheme: dark)');
   function getSystem(){ return mql.matches ? 'dark' : 'light'; }
-  function getSaved(){ return localStorage.getItem(KEY) || 'system'; }
+  function getSaved(){ return localStorage.getItem(KEY) || 'light'; }
   function resolve(val){
     if(val==='light' || val==='dark') return val;
     return getSystem();
@@ -31,10 +31,7 @@
     const sel = document.getElementById('themeSelect');
     if(sel) sel.value = val;
   }
-  function save(val){
-    if(val==='system') localStorage.removeItem(KEY);
-    else localStorage.setItem(KEY, val);
-  }
+  function save(val){ localStorage.setItem(KEY, val); }
   // early apply before paint already done via inline script, but ensure
   const initial = getSaved();
   apply(initial);

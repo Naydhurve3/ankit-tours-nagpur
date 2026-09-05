@@ -1,4 +1,4 @@
-let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[], serviceGroups:[]};
+let data = {fleet:[], packages:[], gallery:[], testimonials:[], serviceCatalog:[], serviceSettings:[], serviceGroups:[], customServices:[]};
 let currentTab = "overview";
 let useApi = false;
 let authenticated = false;
@@ -12,17 +12,18 @@ async function checkApi(){
 }
 async function loadFromApi(){
   try{
-    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups] = await Promise.all([
+    const [fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups, customServices] = await Promise.all([
       fetch('/api/fleet').then(r=>r.json()),
       fetch('/api/packages').then(r=>r.json()),
       fetch('/api/gallery').then(r=>r.json()),
       fetch('/api/testimonials').then(r=>r.json()),
       fetch('/assets/data/replica-services.json').then(r=>r.json()),
       fetch('/api/service-settings').then(r=>r.ok?r.json():[]),
-      fetch('/api/service-groups').then(r=>r.ok?r.json():[])
+      fetch('/api/service-groups').then(r=>r.ok?r.json():[]),
+      fetch('/api/custom-services?all=1').then(r=>r.ok?r.json():[])
     ]);
     // also try public groups fallback if owner fetch fails due to auth (should be authed at this point)
-    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups};
+    return {fleet, packages, gallery, testimonials, serviceCatalog, serviceSettings, serviceGroups, customServices};
   }catch(e){ return null;}
 }
 async function checkSession(){
@@ -51,6 +52,7 @@ document.addEventListener("DOMContentLoaded", async ()=>{
     data = local ? mergeData(seed, local) : structuredClone(seed);
     data.serviceCatalog = await fetch('/assets/data/replica-services.json').then(r=>r.json()).catch(()=>[]);
     data.serviceSettings = data.serviceSettings||[];
+    data.customServices = data.customServices||[];
     if(!local) saveLocal(data);
   }
 
@@ -153,6 +155,7 @@ function renderOverviewAdmin(){
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${visibleGroups}</b><br><span class="small muted">Groups visible</span><br><small>${hiddenGroups} hidden/draft</small></div>
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${fleetVisible}/${(data.fleet||[]).length}</b><br><span class="small muted">Vehicles visible</span></div>
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${(data.packages||[]).filter(p=>p.visible!==false).length}</b><br><span class="small muted">Packages visible</span></div>
+      <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">${(data.customServices||[]).filter(service=>service.visible!==false).length}</b><br><span class="small muted">Owner-created services</span></div>
       <div class="glass-card" style="padding:14px;text-align:center"><b style="font-size:22px;color:var(--primary)">EN+मराठी</b><br><span class="small muted">Bilingual live</span><br><small>Hub theme</small></div>
     </div>
     <div class="panel" style="background:var(--surface-elevated);border-style:dashed">
@@ -273,8 +276,11 @@ function renderPackagesAdmin(){
 function renderServicePricingAdmin(){
   const settings=Object.fromEntries((data.serviceSettings||[]).map(row=>[row.service_id,row]));
   const rows=(data.serviceCatalog||[]).flatMap(category=>(category.items||[]).map((name,index)=>({id:`${category.id}-${index+1}`,category:category.title,name,setting:settings[`${category.id}-${index+1}`]||{visible:true}})));
-  return `<h3>Pin, Price & Visibility ${useApi?'<span class="badge on">Neon DB</span>':''}</h3>
-    <p class="small muted">Featured services appear first. Add a customer-friendly price such as “₹2 / page” or “From ₹100”. Leave blank to show no price.</p>
+  const categoryOptions=(data.serviceCatalog||[]).map(category=>`<option value="${escapeHtml(category.id)}">${escapeHtml(category.title)} • ${escapeHtml(category.titleMr||'')}</option>`).join('');
+  return `<div class="admin-section-heading"><span class="admin-kicker">PUBLIC SERVICE DIRECTORY</span><h3>Services, prices & publishing ${useApi?'<span class="badge on">Neon DB</span>':''}</h3><p class="small muted">Create services in English and Marathi, then control price, position and public visibility.</p></div>
+    <section class="admin-create-card"><h4>Add a new public service</h4><div class="admin-form-grid"><select id="cs_category" class="field"><option value="">Choose service group</option>${categoryOptions}</select><input id="cs_name_en" class="field" placeholder="English service name"><input id="cs_name_mr" class="field" placeholder="मराठी सेवा नाव"><input id="cs_price" class="field" placeholder="Price, e.g. ₹2 / page"><input id="cs_note" class="field" placeholder="Price note"><input id="cs_order" class="field" type="number" min="0" value="0" placeholder="Display order"></div><div class="admin-publish-row"><label><input id="cs_pinned" type="checkbox"> Feature first</label><label><input id="cs_visible" type="checkbox" checked> Publish now</label><button class="btn-sm primary" onclick="addCustomService()">＋ Add service</button></div></section>
+    <h4 class="admin-subheading">Owner-created services</h4><div class="list custom-service-list">${(data.customServices||[]).length?data.customServices.map(service=>`<div class="item ${service.visible===false?'off':''}" style="grid-template-columns:minmax(210px,1fr) auto"><div><b>${escapeHtml(service.name_en)}</b>${service.name_mr?`<span class="admin-marathi">${escapeHtml(service.name_mr)}</span>`:''}<span class="small muted">${escapeHtml((data.serviceCatalog||[]).find(category=>category.id===service.category_id)?.title||service.category_id)} • ${escapeHtml(service.price||'No public price')} ${service.price_note?'• '+escapeHtml(service.price_note):''}</span></div><div class="item-actions"><button class="icon-btn ${service.pinned?'pinned':''}" title="Feature" onclick="updateCustomService(${service.id},{pinned:${!service.pinned}})">${service.pinned?'★':'☆'}</button><button class="icon-btn" title="Publish / hide" onclick="updateCustomService(${service.id},{visible:${service.visible===false}})">${service.visible===false?'🚫':'👁️'}</button><button class="btn-sm" onclick="editCustomService(${service.id})">Edit</button><button class="icon-btn danger" onclick="deleteCustomService(${service.id})">✕</button></div></div>`).join(''):'<div class="admin-empty"><b>No custom services yet</b><span>Add one above. Built-in services remain available below.</span></div>'}</div>
+    <h4 class="admin-subheading">Built-in service display</h4><p class="small muted">Feature important services, hide unavailable work, or add a customer-friendly price such as “₹2 / page”.</p>
     <label class="field" style="display:flex;margin:14px 0"><input id="serviceAdminSearch" type="search" placeholder="Search services…" style="width:100%;border:0;background:transparent;color:inherit"></label>
     <div class="list service-admin-list">${rows.map(row=>`<div class="item service-setting-row ${row.setting.visible===false?'off':''}" data-search="${escapeHtml((row.category+' '+row.name).toLowerCase())}" style="grid-template-columns:minmax(180px,1.5fr) minmax(120px,.7fr) minmax(120px,1fr) auto">
       <div><b>${escapeHtml(row.name)}</b><br><span class="small muted">${escapeHtml(row.category)}</span></div>
@@ -351,6 +357,36 @@ async function saveServiceSetting(id,changes){
     saveLocal(data);
   }
   render();toast('Service display updated');
+}
+
+async function addCustomService(){
+  const payload={category_id:document.getElementById('cs_category').value,name_en:document.getElementById('cs_name_en').value.trim(),name_mr:document.getElementById('cs_name_mr').value.trim(),price:document.getElementById('cs_price').value.trim(),price_note:document.getElementById('cs_note').value.trim(),sort_order:Number(document.getElementById('cs_order').value)||0,pinned:document.getElementById('cs_pinned').checked,visible:document.getElementById('cs_visible').checked};
+  if(!payload.category_id||!payload.name_en||!payload.name_mr){toast('Choose a group and enter English and Marathi names');return;}
+  if(!useApi){toast('Server connection is required to publish a new service');return;}
+  const response=await fetch('/api/custom-services',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const result=await response.json().catch(()=>({}));
+  if(!response.ok){toast(result.error||'Could not add service');return;}data.customServices.push(result);render();toast('New service published');
+}
+
+async function updateCustomService(id,changes){
+  const current=(data.customServices||[]).find(service=>service.id===id);if(!current)return;
+  const response=await fetch('/api/custom-services',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...current,...changes})});const result=await response.json().catch(()=>({}));
+  if(!response.ok){toast(result.error||'Update failed');return;}data.customServices[data.customServices.findIndex(service=>service.id===id)]=result;render();toast('Service updated');
+}
+
+async function editCustomService(id){
+  const current=(data.customServices||[]).find(service=>service.id===id);if(!current)return;
+  const name_en=prompt('English service name',current.name_en);if(name_en===null)return;
+  const name_mr=prompt('Marathi service name',current.name_mr||'');if(name_mr===null)return;
+  const price=prompt('Public price (leave blank for none)',current.price||'');if(price===null)return;
+  const price_note=prompt('Price note',current.price_note||'');if(price_note===null)return;
+  if(!name_en.trim()||!name_mr.trim()){toast('Both language names are required');return;}
+  await updateCustomService(id,{name_en:name_en.trim(),name_mr:name_mr.trim(),price:price.trim(),price_note:price_note.trim()});
+}
+
+async function deleteCustomService(id){
+  if(!confirm('Delete this service permanently? Hide it if it may return later.'))return;
+  const response=await fetch('/api/custom-services?id='+encodeURIComponent(id),{method:'DELETE'});if(!response.ok){toast('Delete failed');return;}
+  data.customServices=data.customServices.filter(service=>service.id!==id);render();toast('Service deleted');
 }
 
 // Actions - API aware
