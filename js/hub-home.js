@@ -1,7 +1,4 @@
 document.addEventListener('DOMContentLoaded',()=>{
-  const themeButton=document.getElementById('themeToggle');
-  const syncThemeButton=()=>{const dark=document.documentElement.dataset.theme==='dark';themeButton.textContent=dark?'☀️':'🌙';themeButton.setAttribute('aria-label',dark?'Switch to light theme':'Switch to dark theme')};
-  themeButton?.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;localStorage.setItem('att_theme',next);document.querySelector('meta[name="theme-color"]')?.setAttribute('content',next==='dark'?'#08131f':'#f5f7fb');syncThemeButton()});syncThemeButton();
   const languageButtons=[...document.querySelectorAll('[data-home-lang]')];
   const setLanguageMode=mode=>{const bilingual=mode!=='english';document.body.classList.toggle('english-only',!bilingual);languageButtons.forEach(button=>{const active=button.dataset.homeLang===(bilingual?'bilingual':'english');button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});localStorage.setItem('replica_site_language',bilingual?'bilingual':'english')};
   languageButtons.forEach(button=>button.addEventListener('click',()=>setLanguageMode(button.dataset.homeLang)));

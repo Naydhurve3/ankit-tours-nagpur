@@ -1,61 +1,35 @@
-// Theme: Light / Dark / System per spec 22
+// Shared theme controller for the public site and owner portal.
 (function(){
   const KEY = 'att_theme';
-  const mql = window.matchMedia('(prefers-color-scheme: dark)');
-  function getSystem(){ return mql.matches ? 'dark' : 'light'; }
-  function getSaved(){ return localStorage.getItem(KEY) || 'light'; }
-  function resolve(val){
-    if(val==='light' || val==='dark') return val;
-    return getSystem();
+  const VALID = new Set(['light', 'dark', 'system']);
+  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+  function preference(){ try { const saved=localStorage.getItem(KEY); return VALID.has(saved)?saved:'light'; } catch(_){ return 'light'; } }
+  function effective(value){ return value==='system'?(systemTheme.matches?'dark':'light'):value; }
+  function controls(){ return [...document.querySelectorAll('#themeToggle, #adminThemeToggle, [data-theme-toggle]')]; }
+  function apply(value, announce){
+    const selected=VALID.has(value)?value:'light'; const active=effective(selected); const isDark=active==='dark';
+    document.documentElement.dataset.theme=active; document.documentElement.style.colorScheme=active;
+    let meta=document.querySelector('meta[name="theme-color"]');
+    if(!meta){ meta=document.createElement('meta'); meta.name='theme-color'; document.head.appendChild(meta); }
+    meta.content=isDark?'#111315':'#edf2f5';
+    controls().forEach(button=>{
+      button.textContent=isDark?'☀️':'🌙'; button.setAttribute('aria-label',isDark?'Switch to light theme':'Switch to dark theme');
+      button.setAttribute('aria-pressed',String(isDark)); button.title=isDark?'Switch to light theme':'Switch to dark theme';
+      if(announce) button.classList.add('theme-changed'); window.setTimeout(()=>button.classList.remove('theme-changed'),360);
+    });
+    document.querySelectorAll('#themeSelect, [data-theme-select]').forEach(select=>{ select.value=selected; });
+    window.dispatchEvent(new CustomEvent('themechange',{detail:{preference:selected,theme:active}}));
   }
-  function apply(val){
-    const effective = resolve(val);
-    document.documentElement.setAttribute('data-theme', effective);
-    // meta
-    let meta = document.querySelector('meta[name="color-scheme"]');
-    if(!meta){ meta=document.createElement('meta'); meta.name='color-scheme'; document.head.appendChild(meta); }
-    meta.content = effective==='dark' ? 'dark light' : 'light dark';
-    // theme-color
-    let tc = document.querySelector('meta[name="theme-color"]');
-    if(!tc){ tc=document.createElement('meta'); tc.name='theme-color'; document.head.appendChild(tc); }
-    tc.content = effective==='dark' ? '#09171C' : '#F7F1E7';
-    // update button aria
-    const btn = document.getElementById('themeToggle');
-    if(btn){
-      const isDark = effective==='dark';
-      btn.textContent = isDark ? '☀️' : '🌙';
-      btn.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
-      btn.title = isDark ? 'Switch to light theme' : 'Switch to dark theme';
-    }
-    // sync select if exists
-    const sel = document.getElementById('themeSelect');
-    if(sel) sel.value = val;
+  function set(value,announce){ const selected=VALID.has(value)?value:'light'; try{localStorage.setItem(KEY,selected);}catch(_){} apply(selected,announce); }
+  const api={set(value){set(value,true);},toggle(){set(effective(preference())==='dark'?'light':'dark',true);},get:preference,effective(){return effective(preference());}};
+  window.Theme=api; apply(preference(),false);
+  function bind(){
+    controls().forEach(button=>{ if(button.dataset.themeBound)return; button.dataset.themeBound='true'; button.addEventListener('click',api.toggle); });
+    document.querySelectorAll('#themeSelect, [data-theme-select]').forEach(select=>{ if(select.dataset.themeBound)return; select.dataset.themeBound='true'; select.addEventListener('change',event=>api.set(event.target.value)); });
+    apply(preference(),false); requestAnimationFrame(()=>document.documentElement.classList.add('theme-ready'));
   }
-  function save(val){ localStorage.setItem(KEY, val); }
-  // early apply before paint already done via inline script, but ensure
-  const initial = getSaved();
-  apply(initial);
-
-  // listen system changes when System
-  const onSystemChange = ()=>{ if(getSaved()==='system') apply('system'); };
-  if(mql.addEventListener) mql.addEventListener('change', onSystemChange);
-  else if(mql.addListener) mql.addListener(onSystemChange);
-
-  window.Theme = {
-    toggle(){
-      const cur = resolve(getSaved());
-      const next = cur==='dark' ? 'light' : 'dark';
-      // toggling via header button is light/dark only; system via select
-      save(next); apply(next);
-    },
-    set(val){ save(val); apply(val); },
-    get(){ return getSaved(); },
-    effective(){ return resolve(getSaved()); }
-  };
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.getElementById('themeToggle')?.addEventListener('click', ()=> window.Theme.toggle());
-    document.getElementById('themeSelect')?.addEventListener('change', e=> window.Theme.set(e.target.value));
-    apply(getSaved());
-  });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+  const systemChanged=()=>{if(preference()==='system')apply('system',false);};
+  if(systemTheme.addEventListener)systemTheme.addEventListener('change',systemChanged); else if(systemTheme.addListener)systemTheme.addListener(systemChanged);
+  window.addEventListener('storage',event=>{if(event.key===KEY)apply(preference(),false);});
 })();

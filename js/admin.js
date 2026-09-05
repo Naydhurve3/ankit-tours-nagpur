@@ -40,8 +40,6 @@ async function checkSession(){
 
 document.addEventListener("DOMContentLoaded", async ()=>{
   await checkApi();
-  // theme toggle for admin
-  document.getElementById('adminThemeToggle')?.addEventListener('click', ()=> window.Theme?.toggle());
   if(useApi){
     // check if already authenticated
     authenticated = await checkSession();

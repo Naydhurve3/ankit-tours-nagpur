@@ -7,7 +7,7 @@
 <meta name="description" content="Printing, Scanning, Lamination & Education — Replica Click Online Center & Ankit Tours, Kondhali Nagpur. Call 7276066532.">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#F7F1E7">
-<script>(function(){try{var v=localStorage.getItem('att_theme');document.documentElement.setAttribute('data-theme',v==='dark'?'dark':'light');}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<script>(function(){try{var v=localStorage.getItem('att_theme')||'light';var d=v==='dark'||(v==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()</script>
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>

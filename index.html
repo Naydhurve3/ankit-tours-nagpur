@@ -5,7 +5,7 @@
   <title>Replica Click | Online Center, Mini Bank & Ankit Tours — Kondhali</title>
   <meta name="description" content="Replica Click in Kondhali: online and banking assistance, printing and photo services, plus Ankit Tours & Travels. Call or WhatsApp 7276066532.">
   <meta name="color-scheme" content="light dark"><meta name="theme-color" content="#f5f7fb">
-  <script>(function(){try{var v=localStorage.getItem('att_theme');document.documentElement.dataset.theme=v==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()</script>
+  <script>(function(){try{var v=localStorage.getItem('att_theme')||'light';var d=v==='dark'||(v==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.dataset.theme=d?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}})()</script>
   <link rel="stylesheet" href="css/hub-home.css">
 </head>
 <body class="is-loading">
@@ -40,5 +40,6 @@
   <footer><a href="/" class="footer-brand"><img src="assets/brand/replica-click-lockup.png" alt="Replica Click"><span>Online Center • Mini Bank • Tours &amp; Travels</span></a><div><a href="/travel/">Travel</a><a href="/banking-services/">Banking</a><a href="/print-photo/">Print</a><a href="/online-services/">Online</a><a href="/contact/">Contact</a></div><p>© 2026 Replica Click &amp; Ankit Tours. All rights reserved.</p></footer>
   <div class="quick-dock glass" id="quickDock" aria-label="Quick contact actions"><a href="tel:+917276066532">☎ <span>Call</span></a><a href="https://wa.me/917276066532" target="_blank" rel="noopener">◉ <span>WhatsApp</span></a></div>
   <dialog id="helpDialog" aria-labelledby="helpTitle"><div class="dialog-shell"><button id="helpClose" aria-label="Close">×</button><small>QUICK GUIDANCE</small><h2 id="helpTitle">What can we help with?</h2><p>Choose an area. We will open a safe WhatsApp enquiry—never include OTP, PIN, password, Aadhaar number or bank details.</p><div class="dialog-options"><button data-help="Tours and vehicle booking">🚗 Tours &amp; vehicles</button><button data-help="Banking or citizen service assistance">🏦 Banking assistance</button><button data-help="Printing, photo or document service">🖨 Print &amp; photo</button><button data-help="Online, education, ticket or business service">💻 Online service</button></div></div></dialog>
+  <script src="js/theme.js"></script>
   <script src="js/hub-home.js"></script>
 </body></html>
