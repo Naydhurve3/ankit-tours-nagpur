@@ -1,5 +1,5 @@
 import { getSql } from '../lib/db.js';
-import { requireAuth } from '../lib/auth.js';
+import { requireAuth, logAudit } from '../lib/auth.js';
 function s(v,m=300){ return typeof v==='string'? v.trim().slice(0,m): ''; }
 export default async function handler(req,res){
   if(req.method==='OPTIONS'){ res.setHeader('Access-Control-Allow-Methods','GET,POST,PUT,OPTIONS'); res.setHeader('Access-Control-Allow-Headers','Content-Type, Authorization'); return res.status(200).end(); }
@@ -17,7 +17,8 @@ export default async function handler(req,res){
       if(!n || !ph) return res.status(400).json({error:'name and phone required'});
       if(!/^[\d+ ]{10,15}$/.test(ph)) return res.status(400).json({error:'invalid phone'});
       // honeypot: if message too long
-      const msg=s(message,1000);
+      if(typeof message==='string'&&message.length>4000)return res.status(400).json({error:'Enquiry details are too long'});
+      const msg=s(message,4000);
       // basic rate limit: check recent bookings from same phone in last 2 minutes
       // skip heavy check for now
       const rows=await sql`INSERT INTO bookings (name,phone,date,service,message,source, status) VALUES (${n},${ph},${s(date,20)},${s(service,80)},${msg},${s(source,20)}, 'new') RETURNING id, name, created_at`;
@@ -29,8 +30,10 @@ export default async function handler(req,res){
       if(!id) return res.status(400).json({error:'id required'});
       const allowed=['new','confirmed','done','cancelled'];
       if(!allowed.includes(status)) return res.status(400).json({error:'invalid status'});
+      const before=await sql`SELECT * FROM bookings WHERE id=${id} LIMIT 1`;
       const rows=await sql`UPDATE bookings SET status=${status}, updated_at=now() WHERE id=${id} RETURNING *`;
       if(!rows.length) return res.status(404).json({error:'not found'});
+      await logAudit(sql,{event_type:'STATUS_UPDATE',entity_type:'bookings',entity_id:id,before_json:before[0],after_json:rows[0],req});
       return res.status(200).json(rows[0]);
     }
     return res.status(405).json({error:'method not allowed'});

@@ -1,0 +1,20 @@
+import {bi,esc,routes,phone} from './catalog.js';
+export function header(active=''){
+  return `<div class="utility"><div class="wrap"><span>Kondhali, Nagpur <span class="optional">• कोढाळी, नागपूर</span></span><span><span class="optional">Visit the centre • </span><a href="tel:+${phone}">☎ 7276066532</a></span></div></div>
+  <header class="masthead"><div class="wrap header-row"><a class="brand" href="/" aria-label="Replica Click home"><img src="/assets/brand/replica-click-lockup.png" alt="Replica Click" width="160" height="49"><span class="brand-caption">YOUR LOCAL<br>SERVICE CENTRE</span></a>
+  <nav class="header-nav" aria-label="Main navigation"><a href="/" ${!active?'aria-current="page"':''}>Home</a><a href="/#directory" ${active==='services'?'aria-current="page"':''}>Services</a><a href="/travel/" ${active==='travel'?'aria-current="page"':''}>Ankit Tours</a><a href="/contact/" ${active==='contact'?'aria-current="page"':''}>Contact</a></nav>
+  <div class="preferences"><select data-language-select aria-label="Language / भाषा"><option value="both">EN + मराठी</option><option value="mr">मराठी</option><option value="en">English</option></select><select data-theme-select aria-label="Colour theme"><option value="light">☀ Light</option><option value="dark">◐ Dark</option><option value="system">◉ Device</option></select></div><button class="menu-toggle" id="menuToggle" aria-label="Menu" aria-expanded="false" aria-controls="mobileMenu">☰</button></div>
+  <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile navigation" hidden><a href="/">Home / मुख्यपृष्ठ</a>${routes.map(r=>`<a href="/${r.id}/">${esc(r.name)} · ${esc(r.mr)}</a>`).join('')}<a href="/contact/">Contact / संपर्क</a><a href="/admin.html">Owner workspace / मालक कक्ष</a></nav></header>`;
+}
+export function footer(){return `<footer class="footer"><div class="wrap"><div class="footer-grid"><div class="footer-brand"><img src="/assets/brand/replica-click-lockup.png" alt="Replica Click" width="190"><p>Online Center & Mini Bank<br>Ankit Tours & Travels<br>Near Bank of India, Kondhali, Nagpur.</p></div><div><h3>${bi('Explore services','सेवा पहा')}</h3>${routes.map(r=>`<a href="/${r.id}/">${esc(r.name)}</a>`).join('')}</div><div><h3>${bi('We are here to help','आपल्या सेवेत')}</h3><a href="tel:+${phone}">☎ 7276066532</a><a href="https://wa.me/${phone}" target="_blank" rel="noopener">WhatsApp ↗</a><a href="/contact/">Visit & directions</a><a href="/admin.html">Owner workspace</a></div></div><div class="footer-bottom"><span>© ${new Date().getFullYear()} Replica Click · Ankit Tours & Travels</span><span>Independent assistance centre · हे शासकीय कार्यालय नाही</span></div></div></footer>`;}
+export function bindShell(){
+  window.Preferences.apply();const toggle=document.querySelector('#menuToggle');const menu=document.querySelector('#mobileMenu');
+  toggle?.addEventListener('click',()=>{menu.hidden=!menu.hidden;toggle.setAttribute('aria-expanded',String(!menu.hidden));toggle.textContent=menu.hidden?'☰':'×';});
+  menu?.addEventListener('click',e=>{if(e.target.closest('a')){menu.hidden=true;toggle.setAttribute('aria-expanded','false');}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu&&!menu.hidden){menu.hidden=true;toggle.setAttribute('aria-expanded','false');toggle.focus();}});
+}
+let toastTimer;
+export function notice(message){const node=document.querySelector('#notice');if(!node)return;node.textContent=message;node.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.hidden=true,5500);}
+export function dialog(id,title,content){return `<dialog id="${id}" aria-labelledby="${id}Title"><div class="dialog-head"><h2 id="${id}Title">${title}</h2><button type="button" class="close" data-close aria-label="Close / बंद करा">×</button></div><div class="dialog-body">${content}</div></dialog>`;}
+export function bindDialog(node){node.addEventListener('click',e=>{if(e.target.closest('[data-close]')||e.target===node)node.close();});node.addEventListener('close',()=>{document.body.style.overflow='';});}
+export function showDialog(node){node.showModal();document.body.style.overflow='hidden';}

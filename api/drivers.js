@@ -6,6 +6,7 @@ export default async function handler(req,res){
   const sql=getSql(); const rid=Math.random().toString(36).slice(2,8);
   try{
     if(req.method==='GET'){
+      res.setHeader('Cache-Control','private, no-store');
       // Public coarse view: only display_name, photo, languages, experience, active_status available/assigned
       // But if authenticated owner, return full
       const token = (req.headers.cookie||'').match(/att_owner=([^;]+)/);
@@ -33,7 +34,10 @@ export default async function handler(req,res){
     if(req.method==='PUT'){
       const {id, ...f}=req.body||{}; if(!id) return res.status(400).json({error:'id required'});
       const before=await sql`SELECT * FROM drivers WHERE id=${id} LIMIT 1`;
-      const rows=await sql`UPDATE drivers SET display_name=${s(f.display_name,60)}, phone=${s(f.phone,20)}, photo_url=${s(f.photo_url,400000)}, languages=${s(f.languages,100)}, active_status=${s(f.active_status,20)}, notes=${s(f.notes,500)}, updated_at=now() WHERE id=${id} RETURNING *`;
+      if(!before.length)return res.status(404).json({error:'Driver not found'});
+      if(!['available','assigned','unavailable'].includes(f.active_status))return res.status(400).json({error:'Invalid availability'});
+      if(f.photo_url&&!/^https:\/\//.test(f.photo_url))return res.status(400).json({error:'Use an HTTPS photo URL'});
+      const rows=await sql`UPDATE drivers SET legal_name=${s(f.legal_name||before[0].legal_name,80)}, display_name=${s(f.display_name,60)}, phone=${s(f.phone,20)}, photo_url=${s(f.photo_url,400000)}, languages=${s(f.languages,100)}, experience_years=${Math.max(0,Math.min(80,parseInt(f.experience_years)||0))}, eligible_vehicles=${s(f.eligible_vehicles,100)}, active_status=${s(f.active_status,20)}, notes=${s(f.notes,500)}, updated_at=now() WHERE id=${id} RETURNING *`;
       await logAudit(sql,{event_type:'UPDATE', entity_type:'drivers', entity_id:id, before_json:before[0], after_json:rows[0], req});
       return res.status(200).json(rows[0]);
     }

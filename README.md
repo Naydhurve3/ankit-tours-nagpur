@@ -1,57 +1,54 @@
-# Ankit Tours & Travels — Deccan Road Edition
+# Replica Click — Service Centre redesign
 
-Responsive public transportation website and authenticated owner portal for Ankit Tours & Travels, Kondhali/Nagpur.
+Independent redesign of Replica Click and Ankit Tours & Travels, Kondhali. The source project at `../ankit tours nagpur` is preserved. Source inspected at commit `62f9a30` on 7 September 2026.
 
-The public experience now connects two businesses while keeping their actions distinct:
+## Open the new version
 
-- **Ankit Tours & Travels** — fleet, packages, routes, availability enquiries, and travel bookings.
-- **Replica Click Online Center & Mini Bank** — searchable online, printing, banking, farmer, education, ticketing, and government-service assistance.
+```powershell
+cd 'D:\Data Science & Analytics\ankit tours nagpur redesign'
+node scripts/preview.mjs
+```
 
-Replica Click enquiries accept only contact details and a plain-language work description. They never request Aadhaar numbers, bank credentials, OTPs, PINs, passwords, or document uploads. Its catalogue lives in `assets/data/replica-services.json`; enquiries use the existing bookings API with source `replica-online-service`, then continue on WhatsApp.
+Open http://127.0.0.1:4185/. Owner workspace: http://127.0.0.1:4185/admin.html. Choose **Preview the workspace** to inspect sample content without logging in. Preview is read-only and has no database connection. Enquiry forms produce WhatsApp messages; sending remains your explicit action in WhatsApp.
 
-## Current experience
+## Active source
 
-- Public site: `index.html`
-- Owner portal: `admin.html`
-- Responsive Light/Dark/System themes
-- Signature-style branded loader
-- Code-native interactive 3D fleet visuals
-- Owner-selectable fleet display: `3d`, `photo`, or `auto` (3D plus visitor photo switch)
-- Local Nagpur/Kondhali/Tadoba/Pench/Shirdi route artwork instead of generic foreign stock scenes
-- Expandable service, fare, availability, and booking-information cards
-- Mobile navigation auto-hide, quote popup, and Call/Quote/WhatsApp dock
-- English, Hindi, and Marathi interface text
-- Neon PostgreSQL content and bookings with local JSON fallback for static development
+```text
+web/                   New shared public and owner interface
+  app.js               Public pages, catalogue, enquiry and travel views
+  catalog.js           Bilingual catalogue, groups and publication rules
+  shared.js            Shared navigation, footer and dialog behavior
+  owner.js             Authenticated owner forms and read-only design preview
+  preferences.js       Explicit light / dark / device and EN / MR / both
+  site.css, owner.css  New responsive visual system
+assets/                Original supplied logo and service inventory
+api/, lib/             Existing Vercel / Neon contracts, corrected in this copy
+scripts/               Static preview, build, verification and database setup
+docs/                  Audit, full inventory, design contract and verification
+legacy/                Inherited frontend and old documentation (inactive)
+dist/                  Generated deployment output (gitignored)
+```
 
-## Local preview
+## What works
 
-Serve this directory over HTTP; opening with `file://` cannot exercise API behavior reliably. The public site falls back to `assets/data/site-data.json` when the API is unavailable.
+- Four service areas, 72 assistance services plus six travel services.
+- Search in English or Marathi, category expand/collapse, featured filter, owner prices and visibility.
+- Every service opens a labelled enquiry form and a reviewable WhatsApp message.
+- Travel forms collect route/date/passengers/vehicle; print forms collect size/colour/copies/pages.
+- Optional document sharing uses the device share sheet or manual WhatsApp attachment. **No server file upload or private document storage is implemented.**
+- Owner forms cover custom services (including travel), prices, pins, visibility, service groups, vehicles, packages, gallery, reviews and drivers; bookings have a detail view and status update.
+- Read-only preview uses sample records. Authenticated editing uses the original server-side PIN and HttpOnly session contract when a database is configured.
+- Public production reads never substitute local samples for unavailable publication data.
 
-## Owner authentication
+## Build and checks
 
-Owner login is verified by `/api/owner/login` using the server-side `ADMIN_PIN` environment variable and an HttpOnly session. Never place the PIN in HTML, JavaScript, documentation, URLs, or Git history.
+```powershell
+node scripts/build.mjs
+node --experimental-vm-modules scripts/verify.mjs
+```
 
-## Fleet visual fields
+The project keeps the existing dependency and lockfile. The local preview and build require only Node.js. To run server APIs, install the locked packages with `npm ci`, configure an **independent staging database** and `ADMIN_PIN`, and use Vercel's development environment (`npm run dev:api`). Do not run `init-db` against the existing production database for a design review.
 
-The `fleet` table includes:
+The Vercel configuration builds `dist/`; the 12 existing function entry points remain in `api/`. No hosting link, production credential, Git remote, or live database was copied. This version has not been deployed.
 
-- `display_mode`: `3d`, `photo`, or `auto`
-- `model_color`: six-digit CSS hex colour used by the 3D vehicle
-- `vehicle_type`: `suv`, `sedan`, or `traveller`
-- `image`: optional HTTPS owner photograph
-
-`api/fleet.js` adds these columns safely with `ALTER TABLE ... IF NOT EXISTS` for existing Neon deployments. `scripts/init-db.js` also contains the complete current schema for clean environments.
-
-## Environment
-
-Required production variables:
-
-- `DATABASE_URL`
-- `ADMIN_PIN`
-- `SESSION_SECRET`
-
-Do not commit environment files or database credentials.
-
-## Deployment
-
-The project is configured for Vercel through `vercel.json`. Before deploying, run syntax checks, inspect `git diff`, verify environment variables, and test public/owner flows at mobile and desktop sizes. A Vercel `READY` state alone does not confirm application security or data correctness.
+Read [the audit and implementation guide](docs/REDESIGN_AUDIT_AND_PLAN.md), [complete service inventory](docs/SERVICE_INVENTORY.md), and [verification record](docs/VERIFICATION.md) before connecting staging or publishing.

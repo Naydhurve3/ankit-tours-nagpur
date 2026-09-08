@@ -3,7 +3,7 @@ import { requireAuth, logAudit } from '../lib/auth.js';
 
 function s(v,m=200){ return typeof v==='string'? v.trim().slice(0,m): ''; }
 
-const customCategories=new Set(['aadhaar','pan','banking','farmer','government','bachat','bus','bills','printing','education','tickets','business','vehicle']);
+const customCategories=new Set(['travel','aadhaar','pan','banking','farmer','government','bachat','bus','bills','printing','education','tickets','business','vehicle']);
 function text(value,max=120){return typeof value==='string'?value.trim().slice(0,max):'';}
 function number(value){const parsed=Number(value);return Number.isFinite(parsed)?Math.max(0,Math.min(9999,Math.trunc(parsed))):0;}
 async function ensureCustomSchema(sql){

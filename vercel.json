@@ -1,6 +1,11 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/owner/", "destination": "/admin.html" },
+    { "source": "/services/(.*)", "destination": "/index.html" },
+    { "source": "/:group/", "destination": "/index.html" }
   ],
   "headers": [
     {

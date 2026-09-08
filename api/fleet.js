@@ -32,6 +32,12 @@ export default async function handler(req, res) {
   try {
     await ensureFleetSchema(sql);
     if (req.method === 'GET') {
+      if(req.query?.all==='1'){
+        const ok=await requireAuth(req,res);if(!ok)return;
+        res.setHeader('Cache-Control','private, no-store');
+        const rows=await sql`SELECT * FROM fleet ORDER BY created_at DESC`;
+        return res.status(200).json(rows);
+      }
       // Public: only visible
       const rows = await sql`SELECT id, name, seating, price, features, image, display_mode, model_color, vehicle_type, visible, created_at FROM fleet WHERE visible=true ORDER BY created_at DESC`;
       return res.status(200).json(rows);

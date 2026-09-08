@@ -4,7 +4,10 @@
   "description": "Ankit Tours & Travels - Kondhali Nagpur - Glassmorphism website",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "node scripts/preview.mjs",
+    "dev:api": "vercel dev",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/preview.mjs",
     "init-db": "node scripts/init-db.js"
   },
   "dependencies": {
